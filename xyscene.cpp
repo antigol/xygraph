@@ -350,24 +350,30 @@ void XYScene::relativeZoom(qreal k)
 
 void XYScene::autoZoom()
 {
-    QList<QPointF> totalPoints;
+    QPointF firstPoint;
     for (int i = 0; i < m_scatterplots.size(); ++i) {
-        totalPoints.append(m_scatterplots[i]->getPoints());
+        if (!m_scatterplots[i]->isEmpty()) {
+            firstPoint = m_scatterplots[i]->first();
+            break;
+        }
     }
 
-    qreal xmin = totalPoints[0].x();
+    qreal xmin = firstPoint.x();
     qreal xmax = xmin;
-    qreal ymin = totalPoints[0].y();
+    qreal ymin = firstPoint.y();
     qreal ymax = ymin;
-    for (int i = 1; i < totalPoints.size(); ++i) {
-        if (totalPoints[i].x() < xmin)
-            xmin = totalPoints[i].x();
-        if (totalPoints[i].x() > xmax)
-            xmax = totalPoints[i].x();
-        if (totalPoints[i].y() < ymin)
-            ymin = totalPoints[i].y();
-        if (totalPoints[i].y() > ymax)
-            ymax = totalPoints[i].y();
+
+    for (int i = 0; i < m_scatterplots.size(); ++i) {
+        for (int j = 1; j < m_scatterplots[i]->size(); ++j) {
+            if (m_scatterplots[i]->at(j).x() < xmin)
+                xmin = m_scatterplots[i]->at(j).x();
+            if (m_scatterplots[i]->at(j).x() > xmax)
+                xmax = m_scatterplots[i]->at(j).x();
+            if (m_scatterplots[i]->at(j).y() < ymin)
+                ymin = m_scatterplots[i]->at(j).y();
+            if (m_scatterplots[i]->at(j).y() > ymax)
+                ymax = m_scatterplots[i]->at(j).y();
+        }
     }
 
     if (xmin != xmax && ymin != ymax)

@@ -29,7 +29,7 @@ unix:!symbian {
         target.path = /opt/usr/lib
     } else {
         target.path = /usr/local/lib
-        headers.files = realzoom.hpp xygraph.hpp xyscene.hpp
+        headers.files = realzoom.hpp xygraph.hpp xyscene.hpp xygraph_global.hpp
         headers.path = /usr/local/include/xygraph
     }
     INSTALLS += target headers

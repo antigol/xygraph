@@ -108,6 +108,7 @@ private:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 
     QTimer *m_timerRegraph;
     QTimer *m_timerZoom;

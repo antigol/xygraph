@@ -485,7 +485,6 @@ void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
 void XYScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    Q_UNUSED(mouseEvent)
     QGraphicsScene::mousePressEvent(mouseEvent);
 
     if (mouseEvent->buttons() & Qt::LeftButton) {
@@ -502,7 +501,6 @@ void XYScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
 void XYScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    Q_UNUSED(mouseEvent)
     QGraphicsScene::mouseReleaseEvent(mouseEvent);
 
     if (m_state & XYScene::SendMouseMove && m_mouseDontMove)
@@ -518,4 +516,12 @@ void XYScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
     }
 
     m_timerRegraph->stop();
+}
+
+void XYScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+    QGraphicsScene::mouseDoubleClickEvent(event);
+
+    autoZoom();
+    regraph();
 }

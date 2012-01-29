@@ -25,24 +25,28 @@
 
 bool XYFunction::domain(qreal x) const
 {
-	Q_UNUSED(x);
-	return true;
+    Q_UNUSED(x);
+    return true;
 }
 
 XYScene::XYScene(QObject *parent) :
-        QGraphicsScene(parent), m_zoomRect(0),
-        m_axesPen(Qt::white), m_subaxesPen(Qt::gray), m_textColor(Qt::white), m_zoomPen(Qt::yellow),
-        m_state(XYScene::RegraphOnResize)
+    QGraphicsScene(parent),
+    m_zoomRect(0),
+    m_axesPen(Qt::white),
+    m_subaxesPen(Qt::gray),
+    m_textColor(Qt::white),
+    m_zoomPen(Qt::yellow),
+    m_state(XYScene::RegraphOnResize)
 {
     setBackgroundBrush(Qt::darkGray);
 
-    m_timer = new QTimer(this);
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(regraph()));
+    m_timerRegraph = new QTimer(this);
+    connect(m_timerRegraph, SIGNAL(timeout()), this, SLOT(regraph()));
 
-    m_timer2 = new QTimer(this);
-    m_timer2->setSingleShot(true);
-    m_timer2->setInterval(100);
-    connect(m_timer2, SIGNAL(timeout()), this, SIGNAL(zoomChanged()));
+    m_timerZoom = new QTimer(this);
+    m_timerZoom->setSingleShot(true);
+    m_timerZoom->setInterval(100);
+    connect(m_timerZoom, SIGNAL(timeout()), this, SIGNAL(zoomChanged()));
 
     connect(this, SIGNAL(sceneRectChanged(QRectF)), this, SLOT(maiRegraph()));
 }
@@ -53,7 +57,7 @@ XYScene::~XYScene()
 
 void XYScene::maiRegraph()
 {
-    if (m_state & XYScene::RegraphOnResize)
+    if ((m_state & XYScene::RegraphOnResize) == XYScene::RegraphOnResize)
         regraph();
 }
 
@@ -73,7 +77,7 @@ void XYScene::regraph()
     //	QTime ch;
     //	ch.start();
     drawaxes();
-//    	qDebug("drawaxes      %d", ch.restart());
+    //    	qDebug("drawaxes      %d", ch.restart());
     drawfunctions();
     //	qDebug("drawfunctions %d", ch.restart());
     drawpoints();
@@ -299,7 +303,7 @@ void XYScene::setZoom(const RealZoom &zoom)
 {
     m_realSceneRect = zoom;
     if (m_state & XYScene::SendZoomChanged)
-        m_timer2->start();
+        m_timerZoom->start();
 }
 
 void XYScene::setZoom(qreal xmin, qreal xmax, qreal ymin, qreal ymax)
@@ -312,28 +316,28 @@ void XYScene::setXMin(qreal xmin)
 {
     m_realSceneRect.setXMin(xmin);
     if (m_state & XYScene::SendZoomChanged)
-        m_timer2->start();
+        m_timerZoom->start();
 }
 
 void XYScene::setXMax(qreal xmax)
 {
     m_realSceneRect.setXMax(xmax);
     if (m_state & XYScene::SendZoomChanged)
-        m_timer2->start();
+        m_timerZoom->start();
 }
 
 void XYScene::setYMin(qreal ymin)
 {
     m_realSceneRect.setYMin(ymin);
     if (m_state & XYScene::SendZoomChanged)
-        m_timer2->start();
+        m_timerZoom->start();
 }
 
 void XYScene::setYMax(qreal ymax)
 {
     m_realSceneRect.setYMax(ymax);
     if (m_state & XYScene::SendZoomChanged)
-        m_timer2->start();
+        m_timerZoom->start();
 }
 
 void XYScene::relativeZoom(qreal k)
@@ -479,7 +483,7 @@ void XYScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     QGraphicsScene::mousePressEvent(mouseEvent);
 
     if (mouseEvent->buttons() & Qt::LeftButton) {
-        m_timer->start();
+        m_timerRegraph->start();
     }
 
     if (mouseEvent->buttons() & Qt::RightButton) {
@@ -507,5 +511,5 @@ void XYScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
         regraph();
     }
 
-    m_timer->stop();
+    m_timerRegraph->stop();
 }

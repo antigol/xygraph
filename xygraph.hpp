@@ -12,15 +12,17 @@
  ***************************************************************************
 */
 
-#include <xygraph_global.hpp>
+#ifndef XYGRAPH_H
+#define XYGRAPH_H
+
+#include "xygraph_global.hpp"
 
 #include <QGraphicsView>
 
 class QResizeEvent;
 class QTimer;
 
-class XYGraph : public QGraphicsView
-{
+class XYGRAPHSHARED_EXPORT XYGraph : public QGraphicsView {
     Q_OBJECT
 public:
     explicit XYGraph(QWidget *parent = 0);
@@ -37,3 +39,5 @@ private:
     inline void initialisation();
     QTimer *m_timer;
 };
+
+#endif // XYGRAPH_H

@@ -16,11 +16,11 @@
 #define XYSCENE_H
 
 #include "xygraph_global.hpp"
-
 #include "realzoom.hpp"
+
 #include <QGraphicsScene>
-#include <QTimer>
 #include <QGraphicsRectItem>
+#include <QTimer>
 
 class XYFunction;
 class XYScatterplot;
@@ -33,8 +33,7 @@ struct XYLook
     QBrush backgroundBrush;
 };
 
-class XYGRAPHSHARED_EXPORT XYScene : public QGraphicsScene
-{
+class XYGRAPHSHARED_EXPORT XYScene : public QGraphicsScene {
     Q_OBJECT
 public:
     enum Status {
@@ -109,8 +108,9 @@ private:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
-    QTimer *m_timer;
-    QTimer *m_timer2;
+
+    QTimer *m_timerRegraph;
+    QTimer *m_timerZoom;
 
     QPointF m_zoomRectOrigin;
     QGraphicsRectItem *m_zoomRect;

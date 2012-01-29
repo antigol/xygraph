@@ -1,5 +1,5 @@
-#ifndef LOCKIN2_GLOBAL_HPP
-#define LOCKIN2_GLOBAL_HPP
+#ifndef XYGRAPH_GLOBAL_HPP
+#define XYGRAPH_GLOBAL_HPP
 
 #include <QtCore/qglobal.h>
 
@@ -9,4 +9,4 @@
 #  define XYGRAPHSHARED_EXPORT Q_DECL_IMPORT
 #endif
 
-#endif // LOCKIN2_GLOBAL_HPP
+#endif // XYGRAPH_GLOBAL_HPP

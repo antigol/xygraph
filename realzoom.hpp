@@ -20,7 +20,7 @@
 #include <qglobal.h>
 #include <cmath>
 
-class XYGRAPHSHARED_EXPORT RealZoom
+class RealZoom
 {
 public:
     RealZoom();

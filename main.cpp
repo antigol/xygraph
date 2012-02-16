@@ -7,9 +7,15 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     // crée un nuage de point aléatoirement
-    XYScatterplot s(QPen(), QBrush(), 2.0, QPen());
+    XYScatterplot s(QPen(),
+                    QBrush(Qt::red),
+                    4.0,
+                    QPen(QBrush(Qt::yellow), 4,
+                         Qt::DashLine, Qt::RoundCap, Qt::BevelJoin));
+
+    qsrand(a.applicationPid());
     for (int i = 0; i < 10; ++i) {
-        s << QPointF(qrand()%10, qrand()%10);
+        s << QPointF(qrand()%11-5, qrand()%11-5);
     }
 
     // crée la vue
@@ -17,6 +23,10 @@ int main(int argc, char *argv[])
 
     // crée la scène
     XYScene scene;
+    scene.setBackgroundBrush(QBrush(Qt::blue, Qt::FDiagPattern));
+    scene.setSubaxesPen(Qt::NoPen);
+    scene.setAxesPen(QPen());
+    scene.setTextColor(QColor("red"));
 
     // ajoute le nuage de points
     scene.addScatterplot(&s);

@@ -37,19 +37,20 @@ class XYGRAPHSHARED_EXPORT XYScene : public QGraphicsScene {
     Q_OBJECT
 public:
     enum Status {
-        // Par defaut
-        SendMouseMove        = 0x1000, //             Envoie les coordonées souris par le signal 'coordonneesSouris(QPointF)'
-        RegraphOnResize      = 0x2000, //     x       Redessine quand il recoit le signal 'sceneRectChanged(QRectF)'
-        SendZoomChanged      = 0x4000  //             Envoie un signal
+        //                                 Par defaut
+        SendMouseMove         = 0x1000, //             Envoie les coordonées souris par le signal 'coordonneesSouris(QPointF)'
+        RegraphOnResize       = 0x2000, //     x       Redessine quand il recoit le signal 'sceneRectChanged(QRectF)'
+        SendZoomChanged       = 0x4000, //             Envoie un signal
+        AutoZoomOnDoubleClick = 0x8000  //     x       Rezoom sur les nuages de points quand on double clique sur le graph
     };
 
     explicit XYScene(QObject *parent = 0);
     virtual ~XYScene();
 
-    inline QList<const XYFunction *> &getFunctionsList();
-    inline void addFunction(const XYFunction *); // similaire getFunctionsList().append(...);
-    inline QList<const XYScatterplot *> &getScatterplotList();
-    inline void addScatterplot(const XYScatterplot *); // similaire getScatterplotList().append(...);
+    QList<const XYFunction *> &getFunctionsList();
+    void addFunction(const XYFunction *); // similaire getFunctionsList().append(...);
+    QList<const XYScatterplot *> &getScatterplotList();
+    void addScatterplot(const XYScatterplot *); // similaire getScatterplotList().append(...);
 
     const RealZoom &zoom() const;
     void setZoom(const RealZoom &zoom);
@@ -63,15 +64,15 @@ public:
     void autoZoom(); // zoom automatique autour des XYScatterplot
     void focusOn(qreal x, qreal y);
 
-    inline int state() const;
-    inline void setState(int);
+    int state() const;
+    void setState(int);
 
-    inline void setAxesPen(const QPen &pen);
-    inline void setSubaxesPen(const QPen &pen);
-    inline void setTextColor(const QColor &color);
-    inline void setZoomPen(const QPen &pen);
-    inline void setLook(const struct XYLook &look);
-    inline struct XYLook look() const;
+    void setAxesPen(const QPen &pen);
+    void setSubaxesPen(const QPen &pen);
+    void setTextColor(const QColor &color);
+    void setZoomPen(const QPen &pen);
+    void setLook(const struct XYLook &look);
+    struct XYLook look() const;
 
     inline qreal xr2i(qreal xr) const;
     inline qreal xi2r(qreal xi) const;
@@ -134,11 +135,11 @@ private:
 class XYGRAPHSHARED_EXPORT XYFunction
 {
 public:
-    inline XYFunction(const QPen &pen = QPen());
-    inline XYFunction(const XYFunction &other);
-    inline void setVisible(bool visible);
-    inline bool isVisible() const;
-    inline void setPen(const QPen &pen);
+    XYFunction(const QPen &pen = QPen());
+    XYFunction(const XYFunction &other);
+    void setVisible(bool visible);
+    bool isVisible() const;
+    void setPen(const QPen &pen);
     virtual qreal y(qreal x) const = 0;
     virtual bool domain(qreal x) const;
 
@@ -152,16 +153,16 @@ private:
 class XYGRAPHSHARED_EXPORT XYScatterplot : public QList<QPointF>
 {
 public:
-    inline XYScatterplot(const QPen &pen = QPen(), const QBrush &brush = QBrush(), qreal r = 2.0, const QPen &linePen = QPen(Qt::NoPen));
-    inline XYScatterplot(const QList<QPointF> &points, const QPen &pen = QPen(), const QBrush &brush = QBrush(), qreal r = 2.0, const QPen &linePen = QPen(Qt::NoPen));
-    inline QList<QPointF> &getPoints();
-    inline const QList<QPointF> &getPoints() const;
-    inline void setVisible(bool visible);
-    inline bool isVisible() const;
-    inline void setPen(const QPen &pen);
-    inline void setBrush(const QBrush &brush);
-    inline void setRadius(qreal r);
-    inline void setLinePen(const QPen &pen);
+    XYScatterplot(const QPen &pen = QPen(), const QBrush &brush = QBrush(), qreal r = 2.0, const QPen &linePen = QPen(Qt::NoPen));
+    XYScatterplot(const QList<QPointF> &points, const QPen &pen = QPen(), const QBrush &brush = QBrush(), qreal r = 2.0, const QPen &linePen = QPen(Qt::NoPen));
+    QList<QPointF> &getPoints();
+    const QList<QPointF> &getPoints() const;
+    void setVisible(bool visible);
+    bool isVisible() const;
+    void setPen(const QPen &pen);
+    void setBrush(const QBrush &brush);
+    void setRadius(qreal r);
+    void setLinePen(const QPen &pen);
 
 private:
     bool m_visible;
@@ -175,143 +176,6 @@ private:
 
 
 /* INLINE IMPLANTATION */
-
-XYFunction::XYFunction(const QPen &pen)
-    : m_visible(true), m_pen(pen)
-{
-}
-
-XYFunction::XYFunction(const XYFunction &other)
-    : m_visible(true), m_pen(other.m_pen)
-{
-}
-
-void XYFunction::setVisible(bool visible)
-{
-    m_visible = visible;
-}
-
-bool XYFunction::isVisible() const
-{
-    return m_visible;
-}
-
-void XYFunction::setPen(const QPen &pen)
-{
-    m_pen = pen;
-}
-
-
-/* INLINE IMPLANTATION */
-
-XYScatterplot::XYScatterplot(const QPen &pen, const QBrush &brush, qreal r, const QPen &linePen)
-    : m_visible(true), m_pen(pen), m_brush(brush), m_r(r), m_linepen(linePen)
-{
-}
-
-XYScatterplot::XYScatterplot(const QList<QPointF> &points, const QPen &pen, const QBrush &brush, qreal r, const QPen &linePen)
-    : QList<QPointF>(points), m_visible(true), m_pen(pen), m_brush(brush), m_r(r), m_linepen(linePen)
-{
-}
-
-QList<QPointF> &XYScatterplot::getPoints()
-{
-    return *this;
-}
-
-const QList<QPointF> &XYScatterplot::getPoints() const
-{
-    return *this;
-}
-
-void XYScatterplot::setVisible(bool visible)
-{
-    m_visible = visible;
-}
-
-bool XYScatterplot::isVisible() const
-{
-    return m_visible;
-}
-
-void XYScatterplot::setPen(const QPen &pen)
-{
-    m_pen = pen;
-}
-
-void XYScatterplot::setBrush(const QBrush &brush)
-{
-    m_brush = brush;
-}
-
-void XYScatterplot::setRadius(qreal r) {
-    m_r = r;
-}
-
-void XYScatterplot::setLinePen(const QPen &pen) {
-    m_linepen = pen;
-}
-
-
-/* INLINE IMPLANTATION */
-
-QList<const XYFunction *> &XYScene::getFunctionsList() {
-    return m_functions;
-}
-
-void XYScene::addFunction(const XYFunction *ptr) {
-    getFunctionsList().append(ptr);
-}
-
-QList<const XYScatterplot *> &XYScene::getScatterplotList() {
-    return m_scatterplots;
-}
-
-void XYScene::addScatterplot(const XYScatterplot *ptr) {
-    getScatterplotList().append(ptr);
-}
-
-int XYScene::state() const {
-    return m_state;
-}
-
-void XYScene::setState(int st) {
-    m_state = st;
-}
-
-void XYScene::setAxesPen(const QPen &pen) {
-    m_axesPen = pen;
-}
-
-void XYScene::setSubaxesPen(const QPen &pen) {
-    m_subaxesPen = pen;
-}
-
-void XYScene::setTextColor(const QColor &color) {
-    m_textColor = color;
-}
-
-void XYScene::setZoomPen(const QPen &pen) {
-    m_zoomPen = pen;
-}
-
-void XYScene::setLook(const struct XYLook &look) {
-    m_axesPen = look.axesPen;
-    m_subaxesPen = look.subaxesPen;
-    m_textColor = look.textColor;
-    m_zoomPen = look.zoomPen;
-    setBackgroundBrush(look.backgroundBrush);
-}
-
-struct XYLook XYScene::look() const {
-    struct XYLook look;
-    look.axesPen = m_axesPen;
-    look.subaxesPen = m_subaxesPen;
-    look.textColor = m_textColor;
-    look.zoomPen = m_zoomPen;
-    look.backgroundBrush = backgroundBrush();
-    return look;
-}
 
 qreal XYScene::xr2i(qreal xr) const {
     return (xr - m_realSceneRect.xMin()) / m_realSceneRect.width() * (sceneRect().width() - 1) + sceneRect().left();

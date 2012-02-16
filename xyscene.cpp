@@ -23,12 +23,6 @@
 
 #include <cmath>
 
-bool XYFunction::domain(qreal x) const
-{
-    Q_UNUSED(x);
-    return true;
-}
-
 XYScene::XYScene(QObject *parent) :
     QGraphicsScene(parent),
     m_zoomRect(0),
@@ -36,7 +30,7 @@ XYScene::XYScene(QObject *parent) :
     m_subaxesPen(Qt::gray),
     m_textColor(Qt::white),
     m_zoomPen(Qt::yellow),
-    m_state(XYScene::RegraphOnResize)
+    m_state(RegraphOnResize | AutoZoomOnDoubleClick)
 {
     setBackgroundBrush(Qt::darkGray);
 
@@ -53,6 +47,26 @@ XYScene::XYScene(QObject *parent) :
 
 XYScene::~XYScene()
 {
+}
+
+QList<const XYFunction *> &XYScene::getFunctionsList()
+{
+    return m_functions;
+}
+
+void XYScene::addFunction(const XYFunction *ptr)
+{
+    getFunctionsList().append(ptr);
+}
+
+QList<const XYScatterplot *> &XYScene::getScatterplotList()
+{
+    return m_scatterplots;
+}
+
+void XYScene::addScatterplot(const XYScatterplot *ptr)
+{
+    getScatterplotList().append(ptr);
 }
 
 void XYScene::maiRegraph()
@@ -302,7 +316,7 @@ const RealZoom &XYScene::zoom() const
 void XYScene::setZoom(const RealZoom &zoom)
 {
     m_realSceneRect = zoom;
-    if (m_state & XYScene::SendZoomChanged)
+    if ((m_state & SendZoomChanged) == SendZoomChanged)
         m_timerZoom->start();
 }
 
@@ -315,28 +329,28 @@ void XYScene::setZoom(qreal xmin, qreal xmax, qreal ymin, qreal ymax)
 void XYScene::setXMin(qreal xmin)
 {
     m_realSceneRect.setXMin(xmin);
-    if (m_state & XYScene::SendZoomChanged)
+    if ((m_state & SendZoomChanged) == SendZoomChanged)
         m_timerZoom->start();
 }
 
 void XYScene::setXMax(qreal xmax)
 {
     m_realSceneRect.setXMax(xmax);
-    if (m_state & XYScene::SendZoomChanged)
+    if ((m_state & SendZoomChanged) == SendZoomChanged)
         m_timerZoom->start();
 }
 
 void XYScene::setYMin(qreal ymin)
 {
     m_realSceneRect.setYMin(ymin);
-    if (m_state & XYScene::SendZoomChanged)
+    if ((m_state & SendZoomChanged) == SendZoomChanged)
         m_timerZoom->start();
 }
 
 void XYScene::setYMax(qreal ymax)
 {
     m_realSceneRect.setYMax(ymax);
-    if (m_state & XYScene::SendZoomChanged)
+    if ((m_state & SendZoomChanged) == SendZoomChanged)
         m_timerZoom->start();
 }
 
@@ -386,6 +400,56 @@ void XYScene::focusOn(qreal x, qreal y)
     const qreal h = m_realSceneRect.height() / 2.0;
 
     setZoom(x - w, x + w, y - h, y + h);
+}
+
+int XYScene::state() const
+{
+    return m_state;
+}
+
+void XYScene::setState(int st)
+{
+    m_state = st;
+}
+
+void XYScene::setAxesPen(const QPen &pen)
+{
+    m_axesPen = pen;
+}
+
+void XYScene::setSubaxesPen(const QPen &pen)
+{
+    m_subaxesPen = pen;
+}
+
+void XYScene::setTextColor(const QColor &color)
+{
+    m_textColor = color;
+}
+
+void XYScene::setZoomPen(const QPen &pen)
+{
+    m_zoomPen = pen;
+}
+
+void XYScene::setLook(const struct XYLook &look)
+{
+    m_axesPen = look.axesPen;
+    m_subaxesPen = look.subaxesPen;
+    m_textColor = look.textColor;
+    m_zoomPen = look.zoomPen;
+    setBackgroundBrush(look.backgroundBrush);
+}
+
+struct XYLook XYScene::look() const
+{
+    struct XYLook look;
+    look.axesPen = m_axesPen;
+    look.subaxesPen = m_subaxesPen;
+    look.textColor = m_textColor;
+    look.zoomPen = m_zoomPen;
+    look.backgroundBrush = backgroundBrush();
+    return look;
 }
 
 void XYScene::keyPressEvent(QKeyEvent *keyEvent)
@@ -477,7 +541,7 @@ void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
         }
     }
 
-    if (m_state & XYScene::SendMouseMove)
+    if ((m_state & SendMouseMove) == SendMouseMove)
         emit mousePosition(image2real(mouseEvent->scenePos()));
 
     m_mouseDontMove = Qt::NoButton;
@@ -503,7 +567,7 @@ void XYScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
     QGraphicsScene::mouseReleaseEvent(mouseEvent);
 
-    if (m_state & XYScene::SendMouseMove && m_mouseDontMove)
+    if ((m_state & SendMouseMove) == SendMouseMove && m_mouseDontMove)
         emit mouseClic(image2real(mouseEvent->scenePos()), m_mouseDontMove);
 
     if (m_zoomRect) {
@@ -522,6 +586,91 @@ void XYScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     QGraphicsScene::mouseDoubleClickEvent(event);
 
-    autoZoom();
-    regraph();
+    if ((m_state & AutoZoomOnDoubleClick) == AutoZoomOnDoubleClick) {
+        autoZoom();
+        regraph();
+    }
+}
+
+/* XYFunction IMPLANTATION */
+
+XYFunction::XYFunction(const QPen &pen)
+    : m_visible(true), m_pen(pen)
+{
+}
+
+XYFunction::XYFunction(const XYFunction &other)
+    : m_visible(true), m_pen(other.m_pen)
+{
+}
+
+void XYFunction::setVisible(bool visible)
+{
+    m_visible = visible;
+}
+
+bool XYFunction::isVisible() const
+{
+    return m_visible;
+}
+
+void XYFunction::setPen(const QPen &pen)
+{
+    m_pen = pen;
+}
+
+bool XYFunction::domain(qreal x) const
+{
+    Q_UNUSED(x);
+    return true;
+}
+
+/* XYScatterplot IMPLANTATION */
+
+XYScatterplot::XYScatterplot(const QPen &pen, const QBrush &brush, qreal r, const QPen &linePen)
+    : m_visible(true), m_pen(pen), m_brush(brush), m_r(r), m_linepen(linePen)
+{
+}
+
+XYScatterplot::XYScatterplot(const QList<QPointF> &points, const QPen &pen, const QBrush &brush, qreal r, const QPen &linePen)
+    : QList<QPointF>(points), m_visible(true), m_pen(pen), m_brush(brush), m_r(r), m_linepen(linePen)
+{
+}
+
+QList<QPointF> &XYScatterplot::getPoints()
+{
+    return *this;
+}
+
+const QList<QPointF> &XYScatterplot::getPoints() const
+{
+    return *this;
+}
+
+void XYScatterplot::setVisible(bool visible)
+{
+    m_visible = visible;
+}
+
+bool XYScatterplot::isVisible() const
+{
+    return m_visible;
+}
+
+void XYScatterplot::setPen(const QPen &pen)
+{
+    m_pen = pen;
+}
+
+void XYScatterplot::setBrush(const QBrush &brush)
+{
+    m_brush = brush;
+}
+
+void XYScatterplot::setRadius(qreal r) {
+    m_r = r;
+}
+
+void XYScatterplot::setLinePen(const QPen &pen) {
+    m_linepen = pen;
 }

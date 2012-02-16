@@ -18,6 +18,8 @@
 #include "xygraph_global.hpp"
 #include "realzoom.hpp"
 
+#include <QPen>
+#include <QBrush>
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
 #include <QTimer>

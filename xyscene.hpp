@@ -40,10 +40,11 @@ class XYGRAPHSHARED_EXPORT XYScene : public QGraphicsScene {
 public:
     enum Status {
         //                                 Par defaut
-        SendMouseMove         = 0x1000, //             Envoie les coordonées souris par le signal 'coordonneesSouris(QPointF)'
-        RegraphOnResize       = 0x2000, //     x       Redessine quand il recoit le signal 'sceneRectChanged(QRectF)'
-        SendZoomChanged       = 0x4000, //             Envoie un signal
-        AutoZoomOnDoubleClick = 0x8000  //     x       Rezoom sur les nuages de points quand on double clique sur le graph
+        SendMouseMove         = 0x0001, //             Envoie les coordonées souris par le signal 'coordonneesSouris(QPointF)'
+        RegraphOnResize       = 0x0002, //     x       Redessine quand il recoit le signal 'sceneRectChanged(QRectF)'
+        SendZoomChanged       = 0x0004, //             Envoie un signal
+        AutoZoomOnDoubleClick = 0x0008, //     x       Rezoom sur les nuages de points quand on double clique sur le graph
+        ShowPointPosition     = 0x0010  //             Affiche la position des point quand on passe la souris dessus
     };
 
     explicit XYScene(QObject *parent = 0);
@@ -118,6 +119,9 @@ private:
 
     QPointF m_zoomRectOrigin;
     QGraphicsRectItem *m_zoomRect;
+
+    QGraphicsTextItem *m_positionPointText;
+    QGraphicsEllipseItem *m_positionPointEllipse;
 
     QPen m_axesPen;
     QPen m_subaxesPen;

@@ -20,12 +20,16 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QFontMetrics>
 #include <QTime>
+#include <QVector2D>
+#include <QDebug>
 
 #include <cmath>
 
 XYScene::XYScene(QObject *parent) :
     QGraphicsScene(parent),
     m_zoomRect(0),
+    m_positionPointText(0),
+    m_positionPointEllipse(0),
     m_axesPen(Qt::white),
     m_subaxesPen(Qt::gray),
     m_textColor(Qt::white),
@@ -85,6 +89,10 @@ void XYScene::regraph()
 
     if (m_realSceneRect.isInvalid())
         return;
+
+    // il va se faire supprimer par clear
+    m_positionPointText = 0;
+    m_positionPointEllipse = 0;
 
     clear();
 
@@ -302,7 +310,10 @@ void XYScene::drawpoints()
         const qreal d = 2.0 * r;
         if (r != 0.0) {
             for (int p = 0; p < m_scatterplots[i]->size(); ++p) {
-                addEllipse(xr2i(m_scatterplots[i]->at(p).x()) - r, yr2i(m_scatterplots[i]->at(p).y()) - r, d, d, m_scatterplots[i]->m_pen, m_scatterplots[i]->m_brush);
+                QGraphicsEllipseItem *item = addEllipse(-r, -r, d, d, m_scatterplots[i]->m_pen, m_scatterplots[i]->m_brush);
+                item->setPos(xr2i(m_scatterplots[i]->at(p).x()), yr2i(m_scatterplots[i]->at(p).y()));
+                item->setData(0, m_scatterplots[i]->at(p).x());
+                item->setData(1, m_scatterplots[i]->at(p).y());
             }
         }
     }
@@ -528,9 +539,7 @@ void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
         delta.ry() *= m_realSceneRect.height() / (sceneRect().height() - 1.0);
         setZoom(m_realSceneRect.xMin() - delta.x(), m_realSceneRect.xMax() - delta.x(),
                 m_realSceneRect.yMin() + delta.y(), m_realSceneRect.yMax() + delta.y());
-    }
-
-    if (mouseEvent->buttons() & Qt::RightButton) {
+    } else if (mouseEvent->buttons() & Qt::RightButton) {
         if (m_zoomRect) {
             QRectF rect(qMin(mouseEvent->scenePos().x(), m_zoomRectOrigin.x()),
                         qMin(mouseEvent->scenePos().y(), m_zoomRectOrigin.y()),
@@ -538,6 +547,56 @@ void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
                         qAbs(mouseEvent->scenePos().y() - m_zoomRectOrigin.y()));
 
             m_zoomRect->setRect(rect);
+        }
+    } else if ((m_state & ShowPointPosition) == ShowPointPosition) {
+        QPointF tol(20, 20);
+        QRectF area(mouseEvent->scenePos() - tol, mouseEvent->scenePos() + tol);
+        QList<QGraphicsItem *> list = items(area, Qt::ContainsItemBoundingRect);
+
+        QGraphicsEllipseItem *item = 0;
+        qreal min = 0.0;
+        for (int i = 0; i < list.size(); ++i) {
+            QGraphicsEllipseItem *currentItem = dynamic_cast<QGraphicsEllipseItem *>(list[i]);
+            if (currentItem != 0 && currentItem != m_positionPointEllipse) {
+                qreal dist = QVector2D(currentItem->scenePos() - mouseEvent->scenePos()).lengthSquared();
+                if (dist < min || item == 0) {
+                    min = dist;
+                    item = currentItem;
+                }
+            }
+        }
+        if (item == 0) {
+            if (m_positionPointEllipse != 0)
+                removeItem(m_positionPointEllipse);
+            m_positionPointEllipse = 0;
+
+            if (m_positionPointText != 0)
+                removeItem(m_positionPointText);
+            m_positionPointText = 0;
+        } else {
+            qreal d = item->rect().width();
+            d = qMax(d * 1.5, d + 4.0);
+            QRectF r(0, 0, d, d);
+            r.moveCenter(QPointF(0, 0));
+
+            if (m_positionPointEllipse != 0)
+                removeItem(m_positionPointEllipse);
+
+            m_positionPointEllipse = addEllipse(r, m_zoomPen);
+            m_positionPointEllipse->setPos(item->scenePos());
+
+            if (m_positionPointText != 0)
+                removeItem(m_positionPointText);
+
+            m_positionPointText = addText(QString("(%1, %2)")
+                                          .arg(item->data(0).toDouble())
+                                          .arg(item->data(1).toDouble()));
+            m_positionPointText->setZValue(2);
+            m_positionPointText->setDefaultTextColor(m_textColor);
+            static QFontMetrics fm(m_positionPointText->font());
+
+            m_positionPointText->setPos(item->scenePos() + m_positionPointEllipse->rect().topRight() +
+                                        QPointF(0.0, -fm.boundingRect(m_positionPointText->toPlainText()).height()));
         }
     }
 

@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     qsrand(a.applicationPid());
     for (int i = 0; i < 10; ++i) {
-        s << QPointF(qrand()%11-5, qrand()%11-5);
+        s << QPointF(qrand() % 11 - 5, qrand() % 11 - 5);
     }
 
     // crée une funyfunction (décarée plus haut dans le main.cpp)
@@ -53,7 +53,10 @@ int main(int argc, char *argv[])
     scene.setBackgroundBrush(QBrush(radialGrad));
     scene.setSubaxesPen(Qt::NoPen);
     scene.setAxesPen(QPen());
+    scene.setZoomPen(QPen(Qt::darkGreen));
     scene.setTextColor(QColor("red"));
+
+    scene.setState(scene.state() | XYScene::ShowPointPosition);
 
     // ajoute le nuage de points
     scene.addScatterplot(&s);

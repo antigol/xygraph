@@ -127,7 +127,7 @@ inline void RealZoom::setYMax(qreal y) {
 }
 
 inline bool RealZoom::isInvalid() const {
-    return _width <= 0.0 || _height <= 0 || std::isinf(_width) || std::isinf(_height);
+    return _width <= 0.0 || _height <= 0.0 || std::isinf(_width) || std::isinf(_height) || std::isnan(_width) || std::isnan(_height);
 }
 
 #endif // REALZOOM_H

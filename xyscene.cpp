@@ -705,6 +705,7 @@ void XYScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             } else {
                 m_currentSpline->addPoint(image2real(mouseEvent->scenePos()));
             }
+            emit splineChanged();
             regraph();
         }
     }
@@ -728,7 +729,10 @@ void XYScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
         regraph();
     }
 
-    m_isMovingSplinePoint = false;
+    if (m_isMovingSplinePoint) {
+        m_isMovingSplinePoint = false;
+        emit splineChanged();
+    }
     m_timerRegraph->stop();
 }
 

@@ -97,6 +97,7 @@ signals:
     void mousePosition(QPointF rpos);
     void mouseClic(QPointF rpos, Qt::MouseButtons = 0);
     void zoomChanged();
+    void splineChanged();
 
 public slots:
     void regraph();

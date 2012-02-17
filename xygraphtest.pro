@@ -7,12 +7,14 @@ DEFINES += XYGRAPH_LIBRARY
 
 SOURCES += xyscene.cpp \
     xygraph.cpp \
-    main.cpp
+    main.cpp \
+    xyspline.cpp
 
 HEADERS += realzoom.hpp \
     xygraph_global.hpp \
     xygraph.hpp \
-    xyscene.hpp
+    xyscene.hpp \
+    xyspline.hpp
 
 symbian {
     MMP_RULES += EXPORTUNFROZEN
@@ -35,7 +37,7 @@ unix:!symbian {
     INSTALLS += target headers
 }
 
-
+LIBS += -lgsl -lgslcblas
 
 ## lancer la commande 'sudo ldconfig' pour résoudre le problème d'execution
 

@@ -34,6 +34,8 @@ XYScene::XYScene(QObject *parent) :
     m_subaxesPen(Qt::gray),
     m_textColor(Qt::white),
     m_zoomPen(Qt::yellow),
+    m_currentSpline(0),
+    m_isMovingSplinePoint(false),
     m_state(RegraphOnResize | AutoZoomOnDoubleClick)
 {
     setBackgroundBrush(Qt::darkGray);
@@ -60,7 +62,7 @@ QList<const XYFunction *> &XYScene::getFunctionsList()
 
 void XYScene::addFunction(const XYFunction *ptr)
 {
-    getFunctionsList().append(ptr);
+    m_functions.append(ptr);
 }
 
 QList<const XYScatterplot *> &XYScene::getScatterplotList()
@@ -70,7 +72,17 @@ QList<const XYScatterplot *> &XYScene::getScatterplotList()
 
 void XYScene::addScatterplot(const XYScatterplot *ptr)
 {
-    getScatterplotList().append(ptr);
+    m_scatterplots.append(ptr);
+}
+
+void XYScene::addSpline(XYSPline *ptr)
+{
+    m_splines.append(ptr);
+}
+
+void XYScene::setCurrentSpline(XYSPline *ptr)
+{
+    m_currentSpline = ptr;
 }
 
 void XYScene::maiRegraph()
@@ -104,6 +116,7 @@ void XYScene::regraph()
     //	qDebug("drawfunctions %d", ch.restart());
     drawpoints();
     //	qDebug("drawpoints    %d", ch.restart());
+    drawsplines();
 }
 
 #define PIXELMIN 40.0
@@ -302,7 +315,7 @@ void XYScene::drawpoints()
                 else
                     path.lineTo(point);
             }
-            addPath(path, m_scatterplots[i]->m_linepen, QBrush(Qt::NoBrush));
+            addPath(path, m_scatterplots[i]->m_linepen);
         }
 
         /* draw ellipses */
@@ -312,9 +325,53 @@ void XYScene::drawpoints()
             for (int p = 0; p < m_scatterplots[i]->size(); ++p) {
                 QGraphicsEllipseItem *item = addEllipse(-r, -r, d, d, m_scatterplots[i]->m_pen, m_scatterplots[i]->m_brush);
                 item->setPos(xr2i(m_scatterplots[i]->at(p).x()), yr2i(m_scatterplots[i]->at(p).y()));
-                item->setData(0, m_scatterplots[i]->at(p).x());
-                item->setData(1, m_scatterplots[i]->at(p).y());
+                item->setData(XValue, m_scatterplots[i]->at(p).x());
+                item->setData(YValue, m_scatterplots[i]->at(p).y());
+                item->setData(Type, TypeScatter);
             }
+        }
+    }
+}
+
+void XYScene::drawsplines()
+{
+    for (int i = 0; i < m_splines.size(); ++i) {
+        if (m_splines[i]->isVisible() == false)
+            continue;
+        // todo : bug si invisible est on rajoute des points ?
+
+        const qreal min = m_splines[i]->xMinimum();
+        const qreal max = m_splines[i]->xMaximum();
+
+        QPainterPath path;
+        bool startPath = false;
+        for (qreal ximage = sceneRect().left(); ximage < sceneRect().right(); ximage += 1.5) {
+            qreal xreal = xi2r(ximage);
+            QPointF point(ximage, 0.0);
+
+            if (xreal >= min && xreal <= max) {
+                point.setY(yr2i(m_splines[i]->spline(xreal)));
+                if (startPath) {
+                    path.lineTo(point);
+                } else {
+                    path.moveTo(point);
+                    startPath = true;
+                }
+            } else {
+                startPath = false;
+            }
+        }
+        addPath(path, m_splines[i]->m_linePen);
+
+        QMap<qreal, qreal>::const_iterator p = m_splines[i]->m_points.constBegin();
+        const qreal r = m_splines[i]->m_dotRadius;
+        const qreal d = 2.0 * r;
+        for (; p != m_splines[i]->m_points.constEnd(); ++p) {
+            QGraphicsEllipseItem *item = addEllipse(-r, -r, d, d, m_splines[i]->m_dotPen, m_splines[i]->m_dotBrush);
+            item->setPos(xr2i(p.key()), yr2i(p.value()));
+            item->setData(XValue, p.key());
+            item->setData(YValue, p.value());
+            item->setData(Type, m_splines[i] == m_currentSpline ? int(TypeCurrentSPline) : int(TypeSPline));
         }
     }
 }
@@ -534,11 +591,20 @@ void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
     QGraphicsScene::mouseMoveEvent(mouseEvent);
 
     if (mouseEvent->buttons() & Qt::LeftButton) {
-        QPointF delta = mouseEvent->scenePos() - mouseEvent->lastScenePos();
-        delta.rx() *= m_realSceneRect.width() / (sceneRect().width() - 1.0);
-        delta.ry() *= m_realSceneRect.height() / (sceneRect().height() - 1.0);
-        setZoom(m_realSceneRect.xMin() - delta.x(), m_realSceneRect.xMax() - delta.x(),
-                m_realSceneRect.yMin() + delta.y(), m_realSceneRect.yMax() + delta.y());
+        if (m_isMovingSplinePoint) {
+            QPointF p = image2real(mouseEvent->scenePos());
+            if (!m_currentSpline->m_points.contains(p.x())) {
+                m_currentSpline->m_points.remove(m_splinePointMoving);
+                m_currentSpline->addPoint(p);
+                m_splinePointMoving = p.x();
+            }
+        } else {
+            QPointF delta = mouseEvent->scenePos() - mouseEvent->lastScenePos();
+            delta.rx() *= m_realSceneRect.width() / (sceneRect().width() - 1.0);
+            delta.ry() *= m_realSceneRect.height() / (sceneRect().height() - 1.0);
+            setZoom(m_realSceneRect.xMin() - delta.x(), m_realSceneRect.xMax() - delta.x(),
+                    m_realSceneRect.yMin() + delta.y(), m_realSceneRect.yMax() + delta.y());
+        }
     } else if (mouseEvent->buttons() & Qt::RightButton) {
         if (m_zoomRect) {
             QRectF rect(qMin(mouseEvent->scenePos().x(), m_zoomRectOrigin.x()),
@@ -549,7 +615,7 @@ void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
             m_zoomRect->setRect(rect);
         }
     } else if ((m_state & ShowPointPosition) == ShowPointPosition) {
-        QPointF tol(20, 20);
+        QPointF tol(10, 10);
         QRectF area(mouseEvent->scenePos() - tol, mouseEvent->scenePos() + tol);
         QList<QGraphicsItem *> list = items(area, Qt::ContainsItemBoundingRect);
 
@@ -567,30 +633,36 @@ void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
         }
         if (item == 0) {
             if (m_positionPointEllipse != 0)
-                removeItem(m_positionPointEllipse);
-            m_positionPointEllipse = 0;
+                m_positionPointEllipse->setVisible(false);
 
             if (m_positionPointText != 0)
-                removeItem(m_positionPointText);
-            m_positionPointText = 0;
+                m_positionPointText->setVisible(false);
         } else {
             qreal d = item->rect().width();
             d = qMax(d * 1.5, d + 4.0);
             QRectF r(0, 0, d, d);
             r.moveCenter(QPointF(0, 0));
 
-            if (m_positionPointEllipse != 0)
-                removeItem(m_positionPointEllipse);
+            if (m_positionPointEllipse == 0) {
+                m_positionPointEllipse = addEllipse(r, m_zoomPen);
+            } else {
+                m_positionPointEllipse->setRect(r);
+                m_positionPointEllipse->setVisible(true);
+            }
 
-            m_positionPointEllipse = addEllipse(r, m_zoomPen);
             m_positionPointEllipse->setPos(item->scenePos());
 
-            if (m_positionPointText != 0)
-                removeItem(m_positionPointText);
+            m_positionPointEllipse->setData(XValue, item->data(XValue));
+            m_positionPointEllipse->setData(XValue, item->data(XValue));
+            m_positionPointEllipse->setData(Type, item->data(Type));
 
-            m_positionPointText = addText(QString("(%1, %2)")
-                                          .arg(item->data(0).toDouble())
-                                          .arg(item->data(1).toDouble()));
+            if (m_positionPointText == 0)
+                m_positionPointText = addText("");
+
+            m_positionPointText->setVisible(true);
+            m_positionPointText->setPlainText(QString("(%1, %2)")
+                                              .arg(item->data(XValue).toDouble())
+                                              .arg(item->data(XValue).toDouble()));
             m_positionPointText->setZValue(2);
             m_positionPointText->setDefaultTextColor(m_textColor);
             static QFontMetrics fm(m_positionPointText->font());
@@ -611,12 +683,30 @@ void XYScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     QGraphicsScene::mousePressEvent(mouseEvent);
 
     if (mouseEvent->buttons() & Qt::LeftButton) {
+        if (m_positionPointEllipse != 0 && m_positionPointEllipse->isVisible() &&
+                m_positionPointEllipse->data(Type).toInt() == int(TypeCurrentSPline)) {
+            m_isMovingSplinePoint = true;
+            m_splinePointMoving = m_positionPointEllipse->data(XValue).toDouble();
+        }
+
         m_timerRegraph->start();
     }
 
     if (mouseEvent->buttons() & Qt::RightButton) {
         m_zoomRect = addRect(QRectF(mouseEvent->scenePos(), mouseEvent->scenePos()), m_zoomPen);
         m_zoomRectOrigin = mouseEvent->scenePos();
+    }
+
+    if (mouseEvent->buttons() & Qt::MiddleButton) {
+        if (m_currentSpline != 0) {
+            if (m_positionPointEllipse != 0 && m_positionPointEllipse->isVisible() &&
+                    m_positionPointEllipse->data(Type).toInt() == int(TypeCurrentSPline)) {
+                m_currentSpline->removePoint(m_positionPointEllipse->data(XValue).toDouble());
+            } else {
+                m_currentSpline->addPoint(image2real(mouseEvent->scenePos()));
+            }
+            regraph();
+        }
     }
 
     m_mouseDontMove = mouseEvent->buttons();
@@ -638,14 +728,15 @@ void XYScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
         regraph();
     }
 
+    m_isMovingSplinePoint = false;
     m_timerRegraph->stop();
 }
 
-void XYScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+void XYScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    QGraphicsScene::mouseDoubleClickEvent(event);
+    QGraphicsScene::mouseDoubleClickEvent(mouseEvent);
 
-    if ((m_state & AutoZoomOnDoubleClick) == AutoZoomOnDoubleClick) {
+    if ((mouseEvent->buttons() & Qt::RightButton) && (m_state & AutoZoomOnDoubleClick) == AutoZoomOnDoubleClick) {
         autoZoom();
         regraph();
     }

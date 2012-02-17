@@ -39,18 +39,18 @@ int main(int argc, char *argv[])
     // crée une funyfunction (décarée plus haut dans le main.cpp)
     FunyFunction f;
 
+    XYSPline spl;
+    spl.addPoint(-3, -5);
+    spl.addPoint(1, -2);
+    spl.addPoint(4, -6);
+
     // crée la vue
     XYGraph graph;
 
     // crée la scène
     XYScene scene;
 
-    QRadialGradient radialGrad(QPointF(100, 100), 100);
-    radialGrad.setColorAt(0, Qt::red);
-    radialGrad.setColorAt(0.5, Qt::yellow);
-    radialGrad.setColorAt(1, Qt::white);
-
-    scene.setBackgroundBrush(QBrush(radialGrad));
+    scene.setBackgroundBrush(QBrush(Qt::white));
     scene.setSubaxesPen(Qt::NoPen);
     scene.setAxesPen(QPen());
     scene.setZoomPen(QPen(Qt::darkGreen));
@@ -61,6 +61,9 @@ int main(int argc, char *argv[])
     // ajoute le nuage de points
     scene.addScatterplot(&s);
     scene.addFunction(&f);
+    scene.addSpline(&spl);
+    scene.setCurrentSpline(&spl);
+
     scene.autoZoom();
     scene.relativeZoom(1.2);
 
@@ -68,6 +71,7 @@ int main(int argc, char *argv[])
     graph.setScene(&scene);
     graph.setWindowTitle("Test 1");
     graph.show();
+    graph.resize(600, 600);
 
     return a.exec();
 }

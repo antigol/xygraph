@@ -17,6 +17,7 @@
 
 #include "xygraph_global.hpp"
 #include "realzoom.hpp"
+#include "xyspline.hpp"
 
 #include <QPen>
 #include <QBrush>
@@ -51,9 +52,11 @@ public:
     virtual ~XYScene();
 
     QList<const XYFunction *> &getFunctionsList();
-    void addFunction(const XYFunction *); // similaire getFunctionsList().append(...);
+    void addFunction(const XYFunction *);
     QList<const XYScatterplot *> &getScatterplotList();
-    void addScatterplot(const XYScatterplot *); // similaire getScatterplotList().append(...);
+    void addScatterplot(const XYScatterplot *);
+    void addSpline(XYSPline * ptr);
+    void setCurrentSpline(XYSPline *ptr);
 
     const RealZoom &zoom() const;
     void setZoom(const RealZoom &zoom);
@@ -105,6 +108,7 @@ private:
     void drawaxes();
     void drawfunctions();
     void drawpoints();
+    void drawsplines();
 
     void keyPressEvent(QKeyEvent *keyEvent);
     void wheelEvent(QGraphicsSceneWheelEvent *wheelEvent);
@@ -112,7 +116,17 @@ private:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *mouseEvent);
+
+    enum PointData {
+        XValue,
+        YValue,
+        Name,
+        Type,
+        TypeScatter,
+        TypeSPline,
+        TypeCurrentSPline
+    };
 
     QTimer *m_timerRegraph;
     QTimer *m_timerZoom;
@@ -133,6 +147,11 @@ private:
 
     QList<const XYFunction *> m_functions;
     QList<const XYScatterplot *> m_scatterplots;
+
+    XYSPline *m_currentSpline;
+    QList<XYSPline *> m_splines;
+    bool m_isMovingSplinePoint;
+    qreal m_splinePointMoving;
 
     int m_state;
     Qt::MouseButtons m_mouseDontMove;
@@ -159,8 +178,8 @@ private:
 class XYGRAPHSHARED_EXPORT XYScatterplot : public QList<QPointF>
 {
 public:
-    XYScatterplot(const QPen &pen = QPen(), const QBrush &brush = QBrush(), qreal r = 2.0, const QPen &linePen = QPen(Qt::NoPen));
-    XYScatterplot(const QList<QPointF> &points, const QPen &pen = QPen(), const QBrush &brush = QBrush(), qreal r = 2.0, const QPen &linePen = QPen(Qt::NoPen));
+    XYScatterplot(const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen(Qt::NoPen));
+    XYScatterplot(const QList<QPointF> &points, const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen(Qt::NoPen));
     QList<QPointF> &getPoints();
     const QList<QPointF> &getPoints() const;
     void setVisible(bool visible);

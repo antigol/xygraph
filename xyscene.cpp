@@ -108,15 +108,16 @@ void XYScene::regraph()
 
     clear();
 
-    //	QTime ch;
-    //	ch.start();
+    QTime ch;
+    ch.start();
     drawaxes();
-    //    	qDebug("drawaxes      %d", ch.restart());
+    qDebug("drawaxes      %d", ch.restart());
     drawfunctions();
-    //	qDebug("drawfunctions %d", ch.restart());
+    qDebug("drawfunctions %d", ch.restart());
     drawpoints();
-    //	qDebug("drawpoints    %d", ch.restart());
+    qDebug("drawpoints    %d", ch.restart());
     drawsplines();
+    qDebug("drawsplines   %d", ch.restart());
 }
 
 #define PIXELMIN 40.0
@@ -593,7 +594,7 @@ void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
     if (mouseEvent->buttons() & Qt::LeftButton) {
         if (m_isMovingSplinePoint) {
             QPointF p = image2real(mouseEvent->scenePos());
-            if (!m_currentSpline->m_points.contains(p.x())) {
+            if (!m_currentSpline->m_points.contains(p.x()) || p.x() == m_splinePointMoving) {
                 m_currentSpline->m_points.remove(m_splinePointMoving);
                 m_currentSpline->addPoint(p);
                 m_splinePointMoving = p.x();

@@ -2,22 +2,26 @@
 #include "xygraph.hpp"
 #include "xyscene.hpp"
 #include <cmath>
+#include <QDebug>
 
 class FunyFunction : public XYFunction {
 public:
-    FunyFunction()
+    FunyFunction(XYSPline *spline) :
+        _spline(spline)
     {
-        setPen(QPen(QBrush(Qt::blue, Qt::Dense5Pattern), 10));
+        setPen(QPen(Qt::blue));
     }
 
     qreal y(qreal x) const
     {
-        return std::pow(std::sin(x) + 1.0, std::cos(x) + 1.0);
+        return _spline->spline(x) * 2.0;
     }
     bool domain(qreal x) const
     {
-        return (x < -1.0) || (x > 1.0);
+        return (x >= _spline->xMinimum()) && (x <= _spline->xMaximum());
     }
+private:
+    XYSPline *_spline;
 };
 
 int main(int argc, char *argv[])
@@ -37,9 +41,9 @@ int main(int argc, char *argv[])
     }
 
     // crée une funyfunction (décarée plus haut dans le main.cpp)
-    FunyFunction f;
-
     XYSPline spl;
+    FunyFunction f(&spl);
+
     spl.addPoint(-3, -5);
     spl.addPoint(1, -2);
     spl.addPoint(4, -6);
@@ -50,6 +54,9 @@ int main(int argc, char *argv[])
     // crée la scène
     XYScene scene;
 
+//    a.connect(&scene, SIGNAL(splineChanged()), &a, SLOT(aboutQt()));
+
+
     scene.setBackgroundBrush(QBrush(Qt::white));
     scene.setSubaxesPen(Qt::NoPen);
     scene.setAxesPen(QPen());
@@ -59,7 +66,7 @@ int main(int argc, char *argv[])
     scene.setState(scene.state() | XYScene::ShowPointPosition);
 
     // ajoute le nuage de points
-    scene.addScatterplot(&s);
+//    scene.addScatterplot(&s);
     scene.addFunction(&f);
     scene.addSpline(&spl);
     scene.setCurrentSpline(&spl);

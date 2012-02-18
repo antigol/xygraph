@@ -38,6 +38,7 @@ unix:!symbian {
 }
 
 LIBS += -lgsl -lgslcblas
+LIBS += -lmarioutil
 
 ## lancer la commande 'sudo ldconfig' pour résoudre le problème d'execution
 

@@ -108,16 +108,16 @@ void XYScene::regraph()
 
     clear();
 
-    QTime ch;
-    ch.start();
+//    QTime ch;
+//    ch.start();
     drawaxes();
-    qDebug("drawaxes      %d", ch.restart());
+//    qDebug("drawaxes      %d", ch.restart());
     drawfunctions();
-    qDebug("drawfunctions %d", ch.restart());
+//    qDebug("drawfunctions %d", ch.restart());
     drawpoints();
-    qDebug("drawpoints    %d", ch.restart());
+//    qDebug("drawpoints    %d", ch.restart());
     drawsplines();
-    qDebug("drawsplines   %d", ch.restart());
+//    qDebug("drawsplines   %d", ch.restart());
 }
 
 #define PIXELMIN 40.0

@@ -3,18 +3,19 @@
 #include "xyscene.hpp"
 #include <cmath>
 #include <QDebug>
+#include <marioutil/pointmap.h>
 
 class FunyFunction : public XYFunction {
 public:
-    FunyFunction(XYSPline *spline) :
-        _spline(spline)
+    FunyFunction(XYSPline *spline, PointMap *sun) :
+        _spline(spline), _sun(sun)
     {
         setPen(QPen(Qt::blue));
     }
 
     qreal y(qreal x) const
     {
-        return _spline->spline(x) * 2.0;
+        return _spline->spline(x) * _sun->interpolate(x);
     }
     bool domain(qreal x) const
     {
@@ -22,6 +23,7 @@ public:
     }
 private:
     XYSPline *_spline;
+    PointMap *_sun;
 };
 
 int main(int argc, char *argv[])
@@ -29,24 +31,17 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     // crée un nuage de point aléatoirement
-    XYScatterplot s(QPen(),
-                    QBrush(Qt::red),
-                    4.0,
-                    QPen(QBrush(Qt::yellow), 4,
-                         Qt::DashLine, Qt::RoundCap, Qt::BevelJoin));
+    PointMap dsun;
+    dsun.loadFile("AM1.5_global_nm.txt");
+    double max = dsun.yMaximum();
+    dsun /= max;
+    XYScatterplot sun(dsun.toPointList(), QPen(), QBrush(), 1.0, QPen(Qt::black));
 
-    qsrand(a.applicationPid());
-    for (int i = 0; i < 10; ++i) {
-        s << QPointF(qrand() % 11 - 5, qrand() % 11 - 5);
-    }
+
 
     // crée une funyfunction (décarée plus haut dans le main.cpp)
-    XYSPline spl;
-    FunyFunction f(&spl);
-
-    spl.addPoint(-3, -5);
-    spl.addPoint(1, -2);
-    spl.addPoint(4, -6);
+    XYSPline spl(QPen(Qt::red), QBrush(Qt::blue), 2.0, QPen(Qt::red));
+    FunyFunction f(&spl, &dsun);
 
     // crée la vue
     XYGraph graph;
@@ -66,7 +61,7 @@ int main(int argc, char *argv[])
     scene.setState(scene.state() | XYScene::ShowPointPosition);
 
     // ajoute le nuage de points
-//    scene.addScatterplot(&s);
+    scene.addScatterplot(&sun);
     scene.addFunction(&f);
     scene.addSpline(&spl);
     scene.setCurrentSpline(&spl);

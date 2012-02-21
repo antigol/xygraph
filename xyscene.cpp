@@ -108,16 +108,16 @@ void XYScene::regraph()
 
     clear();
 
-//    QTime ch;
-//    ch.start();
+    //    QTime ch;
+    //    ch.start();
     drawaxes();
-//    qDebug("drawaxes      %d", ch.restart());
+    //    qDebug("drawaxes      %d", ch.restart());
     drawfunctions();
-//    qDebug("drawfunctions %d", ch.restart());
+    //    qDebug("drawfunctions %d", ch.restart());
     drawpoints();
-//    qDebug("drawpoints    %d", ch.restart());
+    //    qDebug("drawpoints    %d", ch.restart());
     drawsplines();
-//    qDebug("drawsplines   %d", ch.restart());
+    //    qDebug("drawsplines   %d", ch.restart());
 }
 
 #define PIXELMIN 40.0
@@ -698,18 +698,18 @@ void XYScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
         m_zoomRectOrigin = mouseEvent->scenePos();
     }
 
-    if (mouseEvent->buttons() & Qt::MiddleButton) {
-        if (m_currentSpline != 0) {
-            if (m_positionPointEllipse != 0 && m_positionPointEllipse->isVisible() &&
-                    m_positionPointEllipse->data(Type).toInt() == int(TypeCurrentSPline)) {
-                m_currentSpline->removePoint(m_positionPointEllipse->data(XValue).toDouble());
-            } else {
-                m_currentSpline->addPoint(image2real(mouseEvent->scenePos()));
-            }
-            emit splineChanged();
-            regraph();
-        }
-    }
+    //    if (mouseEvent->buttons() & Qt::MiddleButton) {
+    //        if (m_currentSpline != 0) {
+    //            if (m_positionPointEllipse != 0 && m_positionPointEllipse->isVisible() &&
+    //                    m_positionPointEllipse->data(Type).toInt() == int(TypeCurrentSPline)) {
+    //                m_currentSpline->removePoint(m_positionPointEllipse->data(XValue).toDouble());
+    //            } else {
+    //                m_currentSpline->addPoint(image2real(mouseEvent->scenePos()));
+    //            }
+    //            emit splineChanged();
+    //            regraph();
+    //        }
+    //    }
 
     m_mouseDontMove = mouseEvent->buttons();
 }
@@ -743,6 +743,17 @@ void XYScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
     if ((mouseEvent->buttons() & Qt::RightButton) && (m_state & AutoZoomOnDoubleClick) == AutoZoomOnDoubleClick) {
         autoZoom();
+        regraph();
+    }
+
+    if (m_currentSpline != 0) {
+        if (m_positionPointEllipse != 0 && m_positionPointEllipse->isVisible() &&
+                m_positionPointEllipse->data(Type).toInt() == int(TypeCurrentSPline)) {
+            m_currentSpline->removePoint(m_positionPointEllipse->data(XValue).toDouble());
+        } else {
+            m_currentSpline->addPoint(image2real(mouseEvent->scenePos()));
+        }
+        emit splineChanged();
         regraph();
     }
 }

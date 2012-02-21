@@ -21,6 +21,7 @@ public:
 
     void addPoint(qreal x, qreal y);
     void addPoint(const QPointF &p);
+    void loadFromPointMap(const QMap<qreal, qreal> &pointMap);
 
     void removePoint(qreal x);
 

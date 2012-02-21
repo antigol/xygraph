@@ -36,6 +36,12 @@ void XYSPline::addPoint(const QPointF &p)
     respline();
 }
 
+void XYSPline::loadFromPointMap(const QMap<qreal, qreal> &pointMap)
+{
+    m_points = pointMap;
+    respline();
+}
+
 void XYSPline::removePoint(qreal x)
 {
     m_points.remove(x);

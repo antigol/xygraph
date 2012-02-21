@@ -15,6 +15,7 @@ public:
 
     qreal y(qreal x) const
     {
+//        return std::pow(_spline->spline(x), 3.0);
         return _spline->spline(x) * _sun->interpolate(x);
     }
     bool domain(qreal x) const
@@ -24,6 +25,16 @@ public:
 private:
     XYSPline *_spline;
     PointMap *_sun;
+};
+
+
+class sinusoidal : public XYFunction {
+public :
+    qreal y(qreal x) const
+    {
+        return std::pow(std::sin(x),3);
+    }
+
 };
 
 int main(int argc, char *argv[])
@@ -42,6 +53,8 @@ int main(int argc, char *argv[])
     // crée une funyfunction (décarée plus haut dans le main.cpp)
     XYSPline spl(QPen(Qt::red), QBrush(Qt::blue), 2.0, QPen(Qt::red));
     FunyFunction f(&spl, &dsun);
+
+    sinusoidal s;
 
     // crée la vue
     XYGraph graph;
@@ -63,6 +76,7 @@ int main(int argc, char *argv[])
     // ajoute le nuage de points
     scene.addScatterplot(&sun);
     scene.addFunction(&f);
+//    scene.addFunction(&s);
     scene.addSpline(&spl);
     scene.setCurrentSpline(&spl);
 

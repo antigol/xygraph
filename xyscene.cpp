@@ -591,7 +591,7 @@ void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
     QGraphicsScene::mouseMoveEvent(mouseEvent);
 
-    if (mouseEvent->buttons() & Qt::LeftButton) {
+    if (mouseEvent->buttons() & Qt::LeftButton && !(mouseEvent->modifiers() & Qt::ControlModifier)) {
         if (m_isMovingSplinePoint) {
             QPointF p = image2real(mouseEvent->scenePos());
             if (!m_currentSpline->m_points.contains(p.x()) || p.x() == m_splinePointMoving) {
@@ -683,7 +683,7 @@ void XYScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
     QGraphicsScene::mousePressEvent(mouseEvent);
 
-    if (mouseEvent->buttons() & Qt::LeftButton) {
+    if (mouseEvent->buttons() & Qt::LeftButton && !(mouseEvent->modifiers() & Qt::ControlModifier)) {
         if (m_positionPointEllipse != 0 && m_positionPointEllipse->isVisible() &&
                 m_positionPointEllipse->data(Type).toInt() == int(TypeCurrentSPline)) {
             m_isMovingSplinePoint = true;
@@ -698,18 +698,18 @@ void XYScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
         m_zoomRectOrigin = mouseEvent->scenePos();
     }
 
-    //    if (mouseEvent->buttons() & Qt::MiddleButton) {
-    //        if (m_currentSpline != 0) {
-    //            if (m_positionPointEllipse != 0 && m_positionPointEllipse->isVisible() &&
-    //                    m_positionPointEllipse->data(Type).toInt() == int(TypeCurrentSPline)) {
-    //                m_currentSpline->removePoint(m_positionPointEllipse->data(XValue).toDouble());
-    //            } else {
-    //                m_currentSpline->addPoint(image2real(mouseEvent->scenePos()));
-    //            }
-    //            emit splineChanged();
-    //            regraph();
-    //        }
-    //    }
+    if (mouseEvent->buttons() & Qt::LeftButton && mouseEvent->modifiers() & Qt::ControlModifier) {
+        if (m_currentSpline != 0) {
+            if (m_positionPointEllipse != 0 && m_positionPointEllipse->isVisible() &&
+                    m_positionPointEllipse->data(Type).toInt() == int(TypeCurrentSPline)) {
+                m_currentSpline->removePoint(m_positionPointEllipse->data(XValue).toDouble());
+            } else {
+                m_currentSpline->addPoint(image2real(mouseEvent->scenePos()));
+            }
+            emit splineChanged();
+            regraph();
+        }
+    }
 
     m_mouseDontMove = mouseEvent->buttons();
 }
@@ -746,16 +746,6 @@ void XYScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *mouseEvent)
         regraph();
     }
 
-    if (m_currentSpline != 0) {
-        if (m_positionPointEllipse != 0 && m_positionPointEllipse->isVisible() &&
-                m_positionPointEllipse->data(Type).toInt() == int(TypeCurrentSPline)) {
-            m_currentSpline->removePoint(m_positionPointEllipse->data(XValue).toDouble());
-        } else {
-            m_currentSpline->addPoint(image2real(mouseEvent->scenePos()));
-        }
-        emit splineChanged();
-        regraph();
-    }
 }
 
 /* XYFunction IMPLANTATION */

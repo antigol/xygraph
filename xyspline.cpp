@@ -1,5 +1,11 @@
 #include "xyspline.hpp"
 
+XYSPline::XYSPline(const QMap<qreal, qreal> &pointMap, const QPen &dotPen, const QBrush &dotBrush, qreal dotRadius, const QPen &linePen) :
+    m_points(pointMap), m_spline(0), m_dotPen(dotPen), m_dotBrush(dotBrush), m_dotRadius(dotRadius), m_linePen(linePen), m_visible(true)
+{
+    m_accel = gsl_interp_accel_alloc();
+}
+
 XYSPline::XYSPline(const QPen &dotPen, const QBrush &dotBrush, qreal dotRadius, const QPen &linePen) :
     m_spline(0), m_dotPen(dotPen), m_dotBrush(dotBrush), m_dotRadius(dotRadius), m_linePen(linePen), m_visible(true)
 {
@@ -24,6 +30,26 @@ bool XYSPline::isVisible() const
     return m_visible;
 }
 
+void XYSPline::setDotPen(const QPen &pen)
+{
+    m_dotPen = pen;
+}
+
+void XYSPline::setDotBrush(const QBrush &brush)
+{
+    m_dotBrush = brush;
+}
+
+void XYSPline::setDotRadius(qreal radius)
+{
+    m_dotRadius = radius;
+}
+
+void XYSPline::setLinePen(const QPen &pen)
+{
+    m_linePen = pen;
+}
+
 void XYSPline::addPoint(qreal x, qreal y)
 {
     m_points[x] = y;
@@ -42,10 +68,23 @@ void XYSPline::loadFromPointMap(const QMap<qreal, qreal> &pointMap)
     respline();
 }
 
+void XYSPline::addFromPointList(const QList<QPointF> &pointList)
+{
+    for (int i = pointList.size() - 1; i >= 0; --i) {
+        m_points.insert(pointList[i].x(), pointList[i].y());
+    }
+    respline();
+}
+
 void XYSPline::removePoint(qreal x)
 {
     m_points.remove(x);
     respline();
+}
+
+const QMap<qreal, qreal> &XYSPline::pointMap() const
+{
+    return m_points;
 }
 
 void XYSPline::respline()

@@ -13,20 +13,29 @@
 class XYGRAPHSHARED_EXPORT XYSPline
 {
 public:
+    XYSPline(const QMap<qreal, qreal> &pointMap, const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen());
     XYSPline(const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen());
     ~XYSPline();
 
     void setVisible(bool on);
     bool isVisible() const;
 
+    void setDotPen(const QPen &pen);
+    void setDotBrush(const QBrush &brush);
+    void setDotRadius(qreal radius);
+    void setLinePen(const QPen &pen);
+
     void addPoint(qreal x, qreal y);
     void addPoint(const QPointF &p);
     void loadFromPointMap(const QMap<qreal, qreal> &pointMap);
+    void addFromPointList(const QList<QPointF> &pointList);
 
     void removePoint(qreal x);
 
-    void respline();
+    /* toPointMap : accesseur read-only */
+    const QMap<qreal, qreal> &pointMap() const;
 
+    void respline();
     qreal spline(qreal x);
 
     qreal xMinimum();

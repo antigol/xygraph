@@ -16,7 +16,7 @@ public:
     qreal y(qreal x) const
     {
 //        return std::pow(_spline->spline(x), 3.0);
-        return _spline->spline(x) * _sun->interpolate(x);
+        return _spline->interpolate(x) * _sun->interpolate(x);
     }
     bool domain(qreal x) const
     {
@@ -28,7 +28,7 @@ private:
 };
 
 
-class sinusoidal : public XYFunction {
+class Sinusoidal : public XYFunction {
 public :
     qreal y(qreal x) const
     {
@@ -42,19 +42,19 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     // crée un nuage de point aléatoirement
-    PointMap dsun;
-    dsun.loadFile("AM1.5_global_nm.txt");
-    double max = dsun.yMaximum();
-    dsun /= max;
-    XYScatterplot sun(dsun.toPointList(), QPen(), QBrush(), 1.0, QPen(Qt::black));
+    PointMap data;
+    data.loadFile("AM1.5_global_nm.txt");
+    data /= data.yMaximum();
+
+    XYScatterplot scatter(data.toPointList(), QPen(), QBrush(), 1.0, QPen(Qt::black));
 
 
 
     // crée une funyfunction (décarée plus haut dans le main.cpp)
-    XYSPline spl(QPen(Qt::red), QBrush(Qt::blue), 2.0, QPen(Qt::red));
-    FunyFunction f(&spl, &dsun);
+    XYSPline spline(data, XYSPline::Spline, QPen(Qt::red), QBrush(Qt::blue), 2.0, QPen(Qt::red));
 
-    sinusoidal s;
+    FunyFunction fun(&spline, &data);
+    Sinusoidal sinus;
 
     // crée la vue
     XYGraph graph;
@@ -74,11 +74,11 @@ int main(int argc, char *argv[])
     scene.setState(scene.state() | XYScene::ShowPointPosition);
 
     // ajoute le nuage de points
-    scene.addScatterplot(&sun);
-    scene.addFunction(&f);
+//    scene.addScatterplot(&sun);
+//    scene.addFunction(&f);
 //    scene.addFunction(&s);
-    scene.addSpline(&spl);
-    scene.setCurrentSpline(&spl);
+    scene.addSpline(&spline);
+    scene.setCurrentSpline(&spline);
 
     scene.autoZoom();
     scene.relativeZoom(1.2);

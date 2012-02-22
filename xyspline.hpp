@@ -13,8 +13,15 @@
 class XYGRAPHSHARED_EXPORT XYSPline
 {
 public:
-    XYSPline(const QMap<qreal, qreal> &pointMap, const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen());
-    XYSPline(const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen());
+    enum Interpolation {
+        Spline,
+        Linear
+    };
+
+    XYSPline(const QMap<qreal, qreal> &pointMap, enum Interpolation type = Spline,
+             const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen());
+    XYSPline(enum Interpolation type = Spline, const QPen &dotPen = QPen(),
+             const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen());
     ~XYSPline();
 
     void setVisible(bool on);
@@ -36,16 +43,21 @@ public:
     const QMap<qreal, qreal> &pointMap() const;
 
     void respline();
-    qreal spline(qreal x);
+    qreal interpolate(qreal x);
 
     qreal xMinimum();
     qreal xMaximum();
 
 private:
+    qreal interpolate2(qreal x) const;
+    qreal interpolate4(qreal x) const;
+    qreal interpolateS(qreal x);
+
     QMap<qreal, qreal> m_points;
     QVector<qreal> m_xs;
     QVector<qreal> m_ys;
 
+    enum Interpolation m_type;
     gsl_interp_accel *m_accel;
     gsl_spline *m_spline;
 

@@ -346,12 +346,12 @@ void XYScene::drawsplines()
 
         QPainterPath path;
         bool startPath = false;
-        for (qreal ximage = sceneRect().left(); ximage < sceneRect().right(); ximage += 1.5) {
+        for (qreal ximage = sceneRect().left(); ximage < sceneRect().right(); ximage += 1.0) {
             qreal xreal = xi2r(ximage);
             QPointF point(ximage, 0.0);
 
             if (xreal >= min && xreal <= max) {
-                point.setY(yr2i(m_splines[i]->spline(xreal)));
+                point.setY(yr2i(m_splines[i]->interpolate(xreal)));
                 if (startPath) {
                     path.lineTo(point);
                 } else {
@@ -434,9 +434,18 @@ void XYScene::relativeZoom(qreal k)
 void XYScene::autoZoom()
 {
     QPointF firstPoint;
-    for (int i = 0; i < m_scatterplots.size(); ++i) {
-        if (!m_scatterplots[i]->isEmpty()) {
+    for (int i = 0; i < m_scatterplots.size() || i < m_splines.size(); ++i) {
+        if (i < m_scatterplots.size()
+                && !m_scatterplots[i]->isEmpty()
+                && m_scatterplots[i]->isVisible()) {
             firstPoint = m_scatterplots[i]->first();
+            break;
+        }
+        if (i < m_splines.size()
+                && !m_splines[i]->m_points.isEmpty()
+                && m_splines[i]->isVisible()) {
+            firstPoint.setX(m_splines[i]->m_points.constBegin().key());
+            firstPoint.setY(m_splines[i]->m_points.constBegin().value());
             break;
         }
     }
@@ -456,6 +465,20 @@ void XYScene::autoZoom()
                 ymin = m_scatterplots[i]->at(j).y();
             if (m_scatterplots[i]->at(j).y() > ymax)
                 ymax = m_scatterplots[i]->at(j).y();
+        }
+    }
+
+    for (int i = 0; i < m_splines.size(); ++i) {
+        for (QMap<qreal, qreal>::const_iterator j = m_splines[i]->m_points.constBegin();
+             j != m_splines[i]->m_points.constEnd(); ++j) {
+            if (j.key() < xmin)
+                xmin = j.key();
+            if (j.key() > xmax)
+                xmax = j.key();
+            if (j.value() < ymin)
+                ymin = j.value();
+            if (j.value() > ymax)
+                ymax = j.value();
         }
     }
 

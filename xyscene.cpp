@@ -504,6 +504,15 @@ void XYScene::setState(int st)
     m_state = st;
 }
 
+void XYScene::setFlag(XYScene::Status flag, bool enable)
+{
+    if (enable) {
+        m_state |= flag;
+    } else {
+        m_state &= ~flag;
+    }
+}
+
 void XYScene::setAxesPen(const QPen &pen)
 {
     m_axesPen = pen;

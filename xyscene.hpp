@@ -72,6 +72,7 @@ public:
 
     int state() const;
     void setState(int);
+    void setFlag(enum Status flag, bool enable = true);
 
     void setAxesPen(const QPen &pen);
     void setSubaxesPen(const QPen &pen);

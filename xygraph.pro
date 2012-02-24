@@ -6,13 +6,15 @@ TEMPLATE = lib
 DEFINES += XYGRAPH_LIBRARY
 
 SOURCES += xyscene.cpp \
-    xygraph.cpp
+    xygraph.cpp \
+    xyspline.cpp
 #    main.cpp
 
 HEADERS += realzoom.hpp \
     xygraph_global.hpp \
     xygraph.hpp \
-    xyscene.hpp
+    xyscene.hpp \
+    xyspline.hpp
 
 symbian {
     MMP_RULES += EXPORTUNFROZEN
@@ -29,7 +31,7 @@ unix:!symbian {
         target.path = /opt/usr/lib
     } else {
         target.path = /usr/local/lib
-        headers.files = realzoom.hpp xygraph.hpp xyscene.hpp xygraph_global.hpp
+        headers.files = $$HEADERS
         headers.path = /usr/local/include/xygraph
     }
     INSTALLS += target headers

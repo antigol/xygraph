@@ -51,8 +51,8 @@ public:
     explicit XYScene(QObject *parent = 0);
     virtual ~XYScene();
 
-    QList<const XYFunction *> &getFunctionsList();
-    void addFunction(const XYFunction *);
+    QList<XYFunction *> &getFunctionsList();
+    void addFunction(XYFunction *);
     QList<const XYScatterplot *> &getScatterplotList();
     void addScatterplot(const XYScatterplot *);
     void addSpline(XYSPline * ptr);
@@ -147,7 +147,7 @@ private:
 
     RealZoom m_realSceneRect;
 
-    QList<const XYFunction *> m_functions;
+    QList<XYFunction *> m_functions;
     QList<const XYScatterplot *> m_scatterplots;
 
     XYSPline *m_currentSpline;
@@ -167,7 +167,7 @@ public:
     void setVisible(bool visible);
     bool isVisible() const;
     void setPen(const QPen &pen);
-    virtual qreal y(qreal x) const = 0;
+    virtual qreal y(qreal x) = 0;
     virtual bool domain(qreal x) const;
 
 private:

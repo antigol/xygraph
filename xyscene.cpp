@@ -55,12 +55,12 @@ XYScene::~XYScene()
 {
 }
 
-QList<const XYFunction *> &XYScene::getFunctionsList()
+QList<XYFunction *> &XYScene::getFunctionsList()
 {
     return m_functions;
 }
 
-void XYScene::addFunction(const XYFunction *ptr)
+void XYScene::addFunction(XYFunction *ptr)
 {
     m_functions.append(ptr);
 }

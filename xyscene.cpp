@@ -273,7 +273,7 @@ void XYScene::drawaxes()
 void XYScene::drawfunctions()
 {
     bool startPath;
-    qreal xreal;
+    qreal xreal, yreal;
     QPointF point;
 
     for (int i = 0; i < m_functions.size(); ++i) {
@@ -286,12 +286,17 @@ void XYScene::drawfunctions()
             xreal = xi2r(ximage);
             point.setX(ximage);
             if (m_functions[i]->domain(xreal)) {
-                point.setY(yr2i(m_functions[i]->y(xreal)));
-                if (startPath) {
-                    path.lineTo(point);
+                yreal = m_functions[i]->y(xreal);
+                if (!std::isnan(yreal)) {
+                    point.setY(yr2i(yreal));
+                    if (startPath) {
+                        path.lineTo(point);
+                    } else {
+                        path.moveTo(point);
+                        startPath = true;
+                    }
                 } else {
-                    path.moveTo(point);
-                    startPath = true;
+                    startPath = false;
                 }
             } else {
                 startPath = false;

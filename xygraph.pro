@@ -37,7 +37,9 @@ unix:!symbian {
 SOURCES += xyspline.cpp
 HEADERS += xyspline.hpp
 
-DEFINES += NOGSLLIB
+# DEFINES += NOGSLLIB
+
+LIBS += -lgsl -lgslcblas
 
 ## lancer la commande 'sudo ldconfig' pour résoudre le problème d'execution
 

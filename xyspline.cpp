@@ -1,11 +1,10 @@
 #include "xyspline.hpp"
 
 XYSPline::XYSPline(const QMap<qreal, qreal> &pointMap, Interpolation type, const QPen &dotPen, const QBrush &dotBrush, qreal dotRadius, const QPen &linePen) :
-    m_points(pointMap), m_type(type),
     #ifndef NOGSLLIB
     m_accel(0), m_spline(0),
     #endif
-    m_dotPen(dotPen), m_dotBrush(dotBrush), m_dotRadius(dotRadius), m_linePen(linePen), m_visible(true)
+    m_points(pointMap), m_type(type), m_dotPen(dotPen), m_dotBrush(dotBrush), m_dotRadius(dotRadius), m_linePen(linePen), m_visible(true)
 {
 #ifndef NOGSLLIB
     if (type == Spline)
@@ -14,11 +13,10 @@ XYSPline::XYSPline(const QMap<qreal, qreal> &pointMap, Interpolation type, const
 }
 
 XYSPline::XYSPline(Interpolation type, const QPen &dotPen, const QBrush &dotBrush, qreal dotRadius, const QPen &linePen) :
-    m_type(type),
     #ifndef NOGSLLIB
     m_accel(0), m_spline(0),
     #endif
-    m_dotPen(dotPen), m_dotBrush(dotBrush), m_dotRadius(dotRadius), m_linePen(linePen), m_visible(true)
+    m_type(type), m_dotPen(dotPen), m_dotBrush(dotBrush), m_dotRadius(dotRadius), m_linePen(linePen), m_visible(true)
 {
 #ifndef NOGSLLIB
     if (type == Spline)
@@ -121,14 +119,14 @@ qreal XYSPline::interpolate(qreal x)
 
     switch (m_type) {
     case Spline:
-        if (m_points.size() == 2)
-            return interpolate2(x);
 #ifndef NOGSLLIB
-        else
+        if (m_points.size() == 2) {
+            return interpolate2(x);
+        } else {
             return interpolateS(x);
+        }
 #else
-        else
-            qDebug("Spline not supported: recompile xygraph without the NOGSLLIB define.");
+        qDebug("Spline not supported: recompile xygraph without the NOGSLLIB define.");
 #endif
     case Linear:
         return interpolate2(x);

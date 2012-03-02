@@ -13,7 +13,7 @@ public:
         setPen(QPen(Qt::blue));
     }
 
-    qreal y(qreal x) const
+    qreal y(qreal x)
     {
 //        return std::pow(_spline->spline(x), 3.0);
         return _spline->interpolate(x) * _sun->interpolate(x);
@@ -30,7 +30,7 @@ private:
 
 class Sinusoidal : public XYFunction {
 public :
-    qreal y(qreal x) const
+    qreal y(qreal x)
     {
         return std::pow(std::sin(x),3);
     }
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     scene.setZoomPen(QPen(Qt::darkGreen));
     scene.setTextColor(QColor("red"));
 
-    scene.setState(scene.state() | XYScene::ShowPointPosition);
+    scene.setFlag(XYScene::ShowPointPosition);
 
     // ajoute le nuage de points
 //    scene.addScatterplot(&sun);

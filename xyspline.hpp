@@ -8,7 +8,9 @@
 #include <QPen>
 #include <QBrush>
 
-#include <gsl/gsl_spline.h>
+#ifndef NOGSLLIB
+#   include <gsl/gsl_spline.h>
+#endif
 
 class XYGRAPHSHARED_EXPORT XYSPline
 {
@@ -51,15 +53,19 @@ public:
 private:
     qreal interpolate2(qreal x) const;
     qreal interpolate4(qreal x) const;
+#ifndef NOGSLLIB
     qreal interpolateS(qreal x);
+    gsl_interp_accel *m_accel;
+    gsl_spline *m_spline;
+#endif
+
 
     QMap<qreal, qreal> m_points;
     QVector<qreal> m_xs;
     QVector<qreal> m_ys;
 
     enum Interpolation m_type;
-    gsl_interp_accel *m_accel;
-    gsl_spline *m_spline;
+
 
     QPen m_dotPen;
     QBrush m_dotBrush;

@@ -6,15 +6,12 @@ TEMPLATE = lib
 DEFINES += XYGRAPH_LIBRARY
 
 SOURCES += xyscene.cpp \
-    xygraph.cpp \
-    xyspline.cpp
-#    main.cpp
+    xygraph.cpp
 
 HEADERS += realzoom.hpp \
     xygraph_global.hpp \
     xygraph.hpp \
-    xyscene.hpp \
-    xyspline.hpp
+    xyscene.hpp
 
 symbian {
     MMP_RULES += EXPORTUNFROZEN
@@ -37,7 +34,10 @@ unix:!symbian {
     INSTALLS += target headers
 }
 
+SOURCES += xyspline.cpp
+HEADERS += xyspline.hpp
 
+DEFINES += NOGSLLIB
 
 ## lancer la commande 'sudo ldconfig' pour résoudre le problème d'execution
 

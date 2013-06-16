@@ -37,7 +37,9 @@ unix:!symbian {
     INSTALLS += target headers
 }
 
-
+## Si tu n'as pas gsl décommente le define et commente LIBS
+DEFINES += NOGSLLIB
+#LIBS += -lgsl -lgslcblas
 
 ## lancer la commande 'sudo ldconfig' pour résoudre le problème d'execution
 

@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     scene.setZoomPen(QPen(Qt::darkGreen));
     scene.setTextColor(QColor("red"));
 
-    scene.setState(scene.state() | XYScene::ShowPointPosition);
+    scene.setFlag(XYScene::ShowPointPosition);
 
     // ajoute le nuage de points
 //    scene.addScatterplot(&sun);

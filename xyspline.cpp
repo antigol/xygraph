@@ -1,26 +1,38 @@
 #include "xyspline.hpp"
 
 XYSPline::XYSPline(const QMap<qreal, qreal> &pointMap, Interpolation type, const QPen &dotPen, const QBrush &dotBrush, qreal dotRadius, const QPen &linePen) :
-    m_points(pointMap), m_type(type), m_accel(0), m_spline(0), m_dotPen(dotPen), m_dotBrush(dotBrush), m_dotRadius(dotRadius), m_linePen(linePen), m_visible(true)
+    #ifndef NOGSLLIB
+    m_accel(0), m_spline(0),
+    #endif
+    m_points(pointMap), m_type(type), m_dotPen(dotPen), m_dotBrush(dotBrush), m_dotRadius(dotRadius), m_linePen(linePen), m_visible(true)
 {
+#ifndef NOGSLLIB
     if (type == Spline)
         m_accel = gsl_interp_accel_alloc();
+#endif
 }
 
 XYSPline::XYSPline(Interpolation type, const QPen &dotPen, const QBrush &dotBrush, qreal dotRadius, const QPen &linePen) :
-    m_type(type), m_accel(0), m_spline(0), m_dotPen(dotPen), m_dotBrush(dotBrush), m_dotRadius(dotRadius), m_linePen(linePen), m_visible(true)
+    #ifndef NOGSLLIB
+    m_accel(0), m_spline(0),
+    #endif
+    m_type(type), m_dotPen(dotPen), m_dotBrush(dotBrush), m_dotRadius(dotRadius), m_linePen(linePen), m_visible(true)
 {
+#ifndef NOGSLLIB
     if (type == Spline)
         m_accel = gsl_interp_accel_alloc();
+#endif
 }
 
 XYSPline::~XYSPline()
 {
+#ifndef NOGSLLIB
     if (m_spline != 0)
         gsl_spline_free(m_spline);
 
     if (m_accel != 0)
         gsl_interp_accel_free(m_accel);
+#endif
 }
 
 void XYSPline::setVisible(bool on)
@@ -92,10 +104,12 @@ const QMap<qreal, qreal> &XYSPline::pointMap() const
 
 void XYSPline::respline()
 {
+#ifndef NOGSLLIB
     if (m_spline != 0) {
         gsl_spline_free(m_spline);
         m_spline = 0;
     }
+#endif
 }
 
 qreal XYSPline::interpolate(qreal x)
@@ -105,17 +119,22 @@ qreal XYSPline::interpolate(qreal x)
 
     switch (m_type) {
     case Spline:
-        if (m_points.size() == 2)
+#ifndef NOGSLLIB
+        if (m_points.size() == 2) {
             return interpolate2(x);
-        else
+        } else {
             return interpolateS(x);
+        }
+#else
+        qDebug("Spline not supported: recompile xygraph without the NOGSLLIB define.");
+#endif
     case Linear:
         return interpolate2(x);
-//    case Polynomial:
-//        if (m_points.size() <= 3)
-//            return interpolate2(x);
-//        else
-//            return interpolate4(x);
+        //    case Polynomial:
+        //        if (m_points.size() <= 3)
+        //            return interpolate2(x);
+        //        else
+        //            return interpolate4(x);
     }
     return 0.0;
 }
@@ -209,6 +228,7 @@ qreal XYSPline::interpolate4(qreal x) const
             y4 * (x-x1)*(x-x2)*(x-x3) / ((x4-x1)*(x4-x2)*(x4-x3));
 }
 
+#ifndef NOGSLLIB
 qreal XYSPline::interpolateS(qreal x)
 {
     if (m_spline == 0) {
@@ -222,3 +242,4 @@ qreal XYSPline::interpolateS(qreal x)
 
     return gsl_spline_eval(m_spline, x, m_accel);
 }
+#endif

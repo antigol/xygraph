@@ -1,0 +1,2 @@
+Par defaut n'utilise pas la libraire gsl pour les splines.
+Commenter le define NOGSLLIB dans xygraph.pro pour supporter les splines.

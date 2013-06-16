@@ -15,9 +15,13 @@
 #ifndef XYSCENE_H
 #define XYSCENE_H
 
+//#define SPLINE
+
 #include "xygraph_global.hpp"
 #include "realzoom.hpp"
+#ifdef SPLINE
 #include "xyspline.hpp"
+#endif
 
 #include <QPen>
 #include <QBrush>
@@ -55,8 +59,10 @@ public:
     void addFunction(XYFunction *);
     QList<const XYScatterplot *> &getScatterplotList();
     void addScatterplot(const XYScatterplot *);
+#ifdef SPLINE
     void addSpline(XYSPline * ptr);
     void setCurrentSpline(XYSPline *ptr);
+#endif
 
     const RealZoom &zoom() const;
     void setZoom(const RealZoom &zoom);
@@ -110,7 +116,9 @@ private:
     void drawaxes();
     void drawfunctions();
     void drawpoints();
+#ifdef SPLINE
     void drawsplines();
+#endif
 
     void keyPressEvent(QKeyEvent *keyEvent);
     void wheelEvent(QGraphicsSceneWheelEvent *wheelEvent);
@@ -150,10 +158,12 @@ private:
     QList<XYFunction *> m_functions;
     QList<const XYScatterplot *> m_scatterplots;
 
+#ifdef SPLINE
     XYSPline *m_currentSpline;
     QList<XYSPline *> m_splines;
     bool m_isMovingSplinePoint;
     qreal m_splinePointMoving;
+#endif
 
     int m_state;
     Qt::MouseButtons m_mouseDontMove;
@@ -164,6 +174,7 @@ class XYGRAPHSHARED_EXPORT XYFunction
 public:
     XYFunction(const QPen &pen = QPen());
     XYFunction(const XYFunction &other);
+    virtual ~XYFunction() {}
     void setVisible(bool visible);
     bool isVisible() const;
     void setPen(const QPen &pen);

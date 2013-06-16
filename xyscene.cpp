@@ -34,8 +34,10 @@ XYScene::XYScene(QObject *parent) :
     m_subaxesPen(Qt::gray),
     m_textColor(Qt::white),
     m_zoomPen(Qt::yellow),
+    #ifdef SPLINE
     m_currentSpline(0),
     m_isMovingSplinePoint(false),
+    #endif
     m_state(RegraphOnResize | AutoZoomOnDoubleClick)
 {
     setBackgroundBrush(Qt::darkGray);
@@ -75,6 +77,7 @@ void XYScene::addScatterplot(const XYScatterplot *ptr)
     m_scatterplots.append(ptr);
 }
 
+#ifdef SPLINE
 void XYScene::addSpline(XYSPline *ptr)
 {
     m_splines.append(ptr);
@@ -84,6 +87,7 @@ void XYScene::setCurrentSpline(XYSPline *ptr)
 {
     m_currentSpline = ptr;
 }
+#endif
 
 void XYScene::maiRegraph()
 {
@@ -116,8 +120,10 @@ void XYScene::regraph()
     //    qDebug("drawfunctions %d", ch.restart());
     drawpoints();
     //    qDebug("drawpoints    %d", ch.restart());
+#ifdef SPLINE
     drawsplines();
     //    qDebug("drawsplines   %d", ch.restart());
+#endif
 }
 
 #define PIXELMIN 40.0
@@ -339,6 +345,7 @@ void XYScene::drawpoints()
     }
 }
 
+#ifdef SPLINE
 void XYScene::drawsplines()
 {
     for (int i = 0; i < m_splines.size(); ++i) {
@@ -381,6 +388,7 @@ void XYScene::drawsplines()
         }
     }
 }
+#endif
 
 const RealZoom &XYScene::zoom() const
 {
@@ -439,21 +447,23 @@ void XYScene::relativeZoom(qreal k)
 void XYScene::autoZoom()
 {
     QPointF firstPoint;
-    for (int i = 0; i < m_scatterplots.size() || i < m_splines.size(); ++i) {
-        if (i < m_scatterplots.size()
-                && !m_scatterplots[i]->isEmpty()
+    for (int i = 0; i < m_scatterplots.size(); ++i) {
+        if (!m_scatterplots[i]->isEmpty()
                 && m_scatterplots[i]->isVisible()) {
             firstPoint = m_scatterplots[i]->first();
             break;
         }
-        if (i < m_splines.size()
-                && !m_splines[i]->m_points.isEmpty()
+    }
+#ifdef SPLINE
+    for (int i = 0; i < m_splines.size(); ++i) {
+        if (!m_splines[i]->m_points.isEmpty()
                 && m_splines[i]->isVisible()) {
             firstPoint.setX(m_splines[i]->m_points.constBegin().key());
             firstPoint.setY(m_splines[i]->m_points.constBegin().value());
             break;
         }
     }
+#endif
 
     qreal xmin = firstPoint.x();
     qreal xmax = xmin;
@@ -473,6 +483,7 @@ void XYScene::autoZoom()
         }
     }
 
+#ifdef SPLINE
     for (int i = 0; i < m_splines.size(); ++i) {
         for (QMap<qreal, qreal>::const_iterator j = m_splines[i]->m_points.constBegin();
              j != m_splines[i]->m_points.constEnd(); ++j) {
@@ -486,6 +497,7 @@ void XYScene::autoZoom()
                 ymax = j.value();
         }
     }
+#endif
 
     if (xmin != xmax && ymin != ymax)
         setZoom(xmin, xmax, ymin, ymax);
@@ -629,6 +641,7 @@ void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
     QGraphicsScene::mouseMoveEvent(mouseEvent);
 
     if (mouseEvent->buttons() & Qt::LeftButton && !(mouseEvent->modifiers() & Qt::ControlModifier)) {
+#ifdef SPLINE
         if (m_isMovingSplinePoint) {
             QPointF p = image2real(mouseEvent->scenePos());
             if (!m_currentSpline->m_points.contains(p.x()) || p.x() == m_splinePointMoving) {
@@ -637,12 +650,15 @@ void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
                 m_splinePointMoving = p.x();
             }
         } else {
+#endif
             QPointF delta = mouseEvent->scenePos() - mouseEvent->lastScenePos();
             delta.rx() *= m_realSceneRect.width() / (sceneRect().width() - 1.0);
             delta.ry() *= m_realSceneRect.height() / (sceneRect().height() - 1.0);
             setZoom(m_realSceneRect.xMin() - delta.x(), m_realSceneRect.xMax() - delta.x(),
                     m_realSceneRect.yMin() + delta.y(), m_realSceneRect.yMax() + delta.y());
+#ifdef SPLINE
         }
+#endif
     } else if (mouseEvent->buttons() & Qt::RightButton) {
         if (m_zoomRect) {
             QRectF rect(qMin(mouseEvent->scenePos().x(), m_zoomRectOrigin.x()),
@@ -723,8 +739,10 @@ void XYScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     if (mouseEvent->buttons() & Qt::LeftButton && !(mouseEvent->modifiers() & Qt::ControlModifier)) {
         if (m_positionPointEllipse != 0 && m_positionPointEllipse->isVisible() &&
                 m_positionPointEllipse->data(Type).toInt() == int(TypeCurrentSPline)) {
+#ifdef SPLINE
             m_isMovingSplinePoint = true;
             m_splinePointMoving = m_positionPointEllipse->data(XValue).toDouble();
+#endif
         }
 
         m_timerRegraph->start();
@@ -735,6 +753,7 @@ void XYScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
         m_zoomRectOrigin = mouseEvent->scenePos();
     }
 
+#ifdef SPLINE
     if (mouseEvent->buttons() & Qt::LeftButton && mouseEvent->modifiers() & Qt::ControlModifier) {
         if (m_currentSpline != 0) {
             if (m_positionPointEllipse != 0 && m_positionPointEllipse->isVisible() &&
@@ -747,6 +766,7 @@ void XYScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             regraph();
         }
     }
+#endif
 
     m_mouseDontMove = mouseEvent->buttons();
 }
@@ -767,10 +787,12 @@ void XYScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
         regraph();
     }
 
+#ifdef SPLINE
     if (m_isMovingSplinePoint) {
         m_isMovingSplinePoint = false;
         emit splineChanged();
     }
+#endif
     m_timerRegraph->stop();
 }
 

@@ -1,4 +1,4 @@
-QT       += gui
+QT       += gui widgets
 
 TARGET = xygraph
 TEMPLATE = lib
@@ -6,20 +6,20 @@ TEMPLATE = lib
 DEFINES += XYGRAPH_LIBRARY
 
 SOURCES += xyscene.cpp \
-    xygraph.cpp \
-    xyspline.cpp
-#    main.cpp
+    xygraph.cpp
 
 HEADERS += realzoom.hpp \
     xygraph_global.hpp \
     xygraph.hpp \
-    xyscene.hpp \
-    xyspline.hpp
+    xyscene.hpp
+
+#SOURCES += xyspline.cpp
+#HEADERS += xyspline.hpp
 
 symbian {
     MMP_RULES += EXPORTUNFROZEN
     TARGET.UID3 = 0xEF46DA07
-    TARGET.CAPABILITY = 
+    TARGET.CAPABILITY =
     TARGET.EPOCALLOWDLLDATA = 1
     addFiles.sources = lockin2.dll
     addFiles.path = !:/sys/bin

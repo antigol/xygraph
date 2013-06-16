@@ -1,4 +1,4 @@
-QT       += gui
+QT       += gui widgets
 
 TARGET = xygraph
 TEMPLATE = app
@@ -7,14 +7,12 @@ DEFINES += XYGRAPH_LIBRARY
 
 SOURCES += xyscene.cpp \
     xygraph.cpp \
-    main.cpp \
-    xyspline.cpp
+    main.cpp
 
 HEADERS += realzoom.hpp \
     xygraph_global.hpp \
     xygraph.hpp \
-    xyscene.hpp \
-    xyspline.hpp
+    xyscene.hpp
 
 symbian {
     MMP_RULES += EXPORTUNFROZEN
@@ -37,8 +35,8 @@ unix:!symbian {
     INSTALLS += target headers
 }
 
-LIBS += -lgsl -lgslcblas
-LIBS += -lmarioutil
+#LIBS += -lgsl -lgslcblas
+#LIBS += -lmarioutil
 
 ## lancer la commande 'sudo ldconfig' pour résoudre le problème d'execution
 

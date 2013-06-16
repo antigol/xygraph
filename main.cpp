@@ -3,34 +3,10 @@
 #include "xyscene.hpp"
 #include <cmath>
 #include <QDebug>
-#include <marioutil/pointmap.h>
-
-class FunyFunction : public XYFunction {
-public:
-    FunyFunction(XYSPline *spline, PointMap *sun) :
-        _spline(spline), _sun(sun)
-    {
-        setPen(QPen(Qt::blue));
-    }
-
-    qreal y(qreal x) const
-    {
-//        return std::pow(_spline->spline(x), 3.0);
-        return _spline->interpolate(x) * _sun->interpolate(x);
-    }
-    bool domain(qreal x) const
-    {
-        return (x >= _spline->xMinimum()) && (x <= _spline->xMaximum());
-    }
-private:
-    XYSPline *_spline;
-    PointMap *_sun;
-};
-
 
 class Sinusoidal : public XYFunction {
 public :
-    qreal y(qreal x) const
+    qreal y(qreal x)
     {
         return std::pow(std::sin(x),3);
     }
@@ -41,19 +17,6 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    // crée un nuage de point aléatoirement
-    PointMap data;
-    data.loadFile("AM1.5_global_nm.txt");
-    data /= data.yMaximum();
-
-    XYScatterplot scatter(data.toPointList(), QPen(), QBrush(), 1.0, QPen(Qt::black));
-
-
-
-    // crée une funyfunction (décarée plus haut dans le main.cpp)
-    XYSPline spline(data, XYSPline::Spline, QPen(Qt::red), QBrush(Qt::blue), 2.0, QPen(Qt::red));
-
-    FunyFunction fun(&spline, &data);
     Sinusoidal sinus;
 
     // crée la vue
@@ -75,10 +38,10 @@ int main(int argc, char *argv[])
 
     // ajoute le nuage de points
 //    scene.addScatterplot(&sun);
-//    scene.addFunction(&f);
+    scene.addFunction(&sinus);
 //    scene.addFunction(&s);
-    scene.addSpline(&spline);
-    scene.setCurrentSpline(&spline);
+//    scene.addSpline(&spline);
+//    scene.setCurrentSpline(&spline);
 
     scene.autoZoom();
     scene.relativeZoom(1.2);

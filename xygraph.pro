@@ -1,45 +1,12 @@
 QT       += gui widgets
 
 TARGET = xygraph
-TEMPLATE = lib
-
-DEFINES += XYGRAPH_LIBRARY
+TEMPLATE = app
 
 SOURCES += xyscene.cpp \
-    xygraph.cpp
+    xygraph.cpp \
+    main.cpp
 
 HEADERS += realzoom.hpp \
-    xygraph_global.hpp \
     xygraph.hpp \
     xyscene.hpp
-
-#SOURCES += xyspline.cpp
-#HEADERS += xyspline.hpp
-
-symbian {
-    MMP_RULES += EXPORTUNFROZEN
-    TARGET.UID3 = 0xEF46DA07
-    TARGET.CAPABILITY =
-    TARGET.EPOCALLOWDLLDATA = 1
-    addFiles.sources = lockin2.dll
-    addFiles.path = !:/sys/bin
-    DEPLOYMENT += addFiles
-}
-
-unix:!symbian {
-    maemo5 {
-        target.path = /opt/usr/lib
-    } else {
-        target.path = /usr/local/lib
-        headers.files = $$HEADERS
-        headers.path = /usr/local/include/xygraph
-    }
-    INSTALLS += target headers
-}
-
-## Si tu n'as pas gsl décommente le define et commente LIBS
-DEFINES += NOGSLLIB
-#LIBS += -lgsl -lgslcblas
-
-## lancer la commande 'sudo ldconfig' pour résoudre le problème d'execution
-

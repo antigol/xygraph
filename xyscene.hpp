@@ -1,27 +1,23 @@
 /*
+		   DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+				   Version 2, December 2004
 
-    Copyright (c) 2010 by Mario Geiger <mario.geiger@epfl.ch>
+Copyright (C) 2017 Mario Geiger <mario.geiger@epfl.ch>
 
- ***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 3 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************
+Everyone is permitted to copy and distribute verbatim or modified
+copies of this license document, and changing it is allowed as long
+as the name is changed.
+
+		   DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+  TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+ 0. You just DO WHAT THE FUCK YOU WANT TO.
 */
 
 #ifndef XYSCENE_H
 #define XYSCENE_H
 
-//#define SPLINE
-
-#include "xygraph_global.hpp"
 #include "realzoom.hpp"
-#ifdef SPLINE
-#include "xyspline.hpp"
-#endif
 
 #include <QPen>
 #include <QBrush>
@@ -40,7 +36,7 @@ struct XYLook
     QBrush backgroundBrush;
 };
 
-class XYGRAPHSHARED_EXPORT XYScene : public QGraphicsScene {
+class XYScene : public QGraphicsScene {
     Q_OBJECT
 public:
     enum Status {
@@ -59,10 +55,6 @@ public:
     void addFunction(XYFunction *);
     QList<const XYScatterplot *> &getScatterplotList();
     void addScatterplot(const XYScatterplot *);
-#ifdef SPLINE
-    void addSpline(XYSPline * ptr);
-    void setCurrentSpline(XYSPline *ptr);
-#endif
 
     const RealZoom &zoom() const;
     void setZoom(const RealZoom &zoom);
@@ -104,7 +96,6 @@ signals:
     void mousePosition(QPointF rpos);
     void mouseClic(QPointF rpos, Qt::MouseButtons = 0);
     void zoomChanged();
-    void splineChanged();
 
 public slots:
     void regraph();
@@ -116,9 +107,6 @@ private:
     void drawaxes();
     void drawfunctions();
     void drawpoints();
-#ifdef SPLINE
-    void drawsplines();
-#endif
 
     void keyPressEvent(QKeyEvent *keyEvent);
     void wheelEvent(QGraphicsSceneWheelEvent *wheelEvent);
@@ -133,9 +121,7 @@ private:
         YValue,
         Name,
         Type,
-        TypeScatter,
-        TypeSPline,
-        TypeCurrentSPline
+		TypeScatter
     };
 
     QTimer *m_timerRegraph;
@@ -158,18 +144,11 @@ private:
     QList<XYFunction *> m_functions;
     QList<const XYScatterplot *> m_scatterplots;
 
-#ifdef SPLINE
-    XYSPline *m_currentSpline;
-    QList<XYSPline *> m_splines;
-    bool m_isMovingSplinePoint;
-    qreal m_splinePointMoving;
-#endif
-
     int m_state;
     Qt::MouseButtons m_mouseDontMove;
 };
 
-class XYGRAPHSHARED_EXPORT XYFunction
+class XYFunction
 {
 public:
     XYFunction(const QPen &pen = QPen());
@@ -188,7 +167,7 @@ private:
     friend class XYScene;
 };
 
-class XYGRAPHSHARED_EXPORT XYScatterplot : public QList<QPointF>
+class XYScatterplot : public QList<QPointF>
 {
 public:
     XYScatterplot(const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen(Qt::NoPen));

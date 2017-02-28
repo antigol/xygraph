@@ -25,23 +25,18 @@ int main(int argc, char *argv[])
     // crée la scène
     XYScene scene;
 
-//    a.connect(&scene, SIGNAL(splineChanged()), &a, SLOT(aboutQt()));
-
-
     scene.setBackgroundBrush(QBrush(Qt::white));
     scene.setSubaxesPen(Qt::NoPen);
     scene.setAxesPen(QPen());
     scene.setZoomPen(QPen(Qt::darkGreen));
     scene.setTextColor(QColor("red"));
 
-    scene.setFlag(XYScene::ShowPointPosition);
+	scene.setFlag(XYScene::ShowPointPosition);
 
-    // ajoute le nuage de points
-//    scene.addScatterplot(&sun);
+	XYScatterplot points(QList<QPointF>() << QPointF(0.0, 0.0) << QPointF(0.5, 1.0) << QPointF(1.0, 1.0) << QPointF(1.045, 1.05), QPen(), QBrush(), 5.0, QPen(Qt::red));
+	scene.addScatterplot(&points);
+
     scene.addFunction(&sinus);
-//    scene.addFunction(&s);
-//    scene.addSpline(&spline);
-//    scene.setCurrentSpline(&spline);
 
     scene.autoZoom();
     scene.relativeZoom(1.2);

@@ -1,21 +1,21 @@
 /*
+		   DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+				   Version 2, December 2004
 
-    Copyright (c) 2010 by Mario Geiger <mario.geiger@epfl.ch>
+Copyright (C) 2017 Mario Geiger <mario.geiger@epfl.ch>
 
- ***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 3 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************
+Everyone is permitted to copy and distribute verbatim or modified
+copies of this license document, and changing it is allowed as long
+as the name is changed.
+
+		   DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+  TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+ 0. You just DO WHAT THE FUCK YOU WANT TO.
 */
 
 #ifndef REALZOOM_H
 #define REALZOOM_H
-
-#include "xygraph_global.hpp"
 
 #include <qglobal.h>
 #include <cmath>

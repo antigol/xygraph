@@ -3,10 +3,10 @@ QT       += gui widgets
 TARGET = xygraph
 TEMPLATE = app
 
-SOURCES += xyscene.cpp \
-    xygraph.cpp \
-    main.cpp
+SOURCES += xyscene.cc \
+    xyview.cc \
+    main.cc
 
-HEADERS += realzoom.hpp \
-    xygraph.hpp \
-    xyscene.hpp
+HEADERS += \
+    xyscene.hh \
+    xyview.hh

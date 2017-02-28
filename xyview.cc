@@ -14,24 +14,24 @@ as the name is changed.
  0. You just DO WHAT THE FUCK YOU WANT TO.
 */
 
-#include "xygraph.hpp"
+#include "xyview.hh"
 
 #include <QResizeEvent>
 #include <QTimer>
 
-XYGraph::XYGraph(QWidget *parent) :
+XYView::XYView(QWidget *parent) :
     QGraphicsView(parent)
 {
     initialisation();
 }
 
-XYGraph::XYGraph(QGraphicsScene *scene, QWidget *parent) :
+XYView::XYView(QGraphicsScene *scene, QWidget *parent) :
     QGraphicsView(scene, parent)
 {
     initialisation();
 }
 
-inline void XYGraph::initialisation()
+inline void XYView::initialisation()
 {
     setFocusPolicy(Qt::WheelFocus);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -43,7 +43,7 @@ inline void XYGraph::initialisation()
     connect(m_timer, SIGNAL(timeout()), this, SLOT(resizeScene()));
 }
 
-void XYGraph::startRegraphTimer()
+void XYView::startRegraphTimer()
 {
     if (scene()) {
         m_timer->start();
@@ -51,14 +51,14 @@ void XYGraph::startRegraphTimer()
     }
 }
 
-void XYGraph::resizeEvent(QResizeEvent *e)
+void XYView::resizeEvent(QResizeEvent *e)
 {
     startRegraphTimer();
 
     QGraphicsView::resizeEvent(e);
 }
 
-void XYGraph::resizeScene()
+void XYView::resizeScene()
 {
     if (scene())
         scene()->setSceneRect(geometry());

@@ -17,16 +17,15 @@ as the name is changed.
 #ifndef XYSCENE_H
 #define XYSCENE_H
 
-#include "realzoom.hpp"
-
 #include <QPen>
 #include <QBrush>
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
 #include <QTimer>
+#include <cmath>
 
 class XYFunction;
-class XYScatterplot;
+class XYPointList;
 struct XYLook
 {
     QPen axesPen;
@@ -34,6 +33,34 @@ struct XYLook
     QColor textColor;
     QPen zoomPen;
     QBrush backgroundBrush;
+};
+
+class RealZoom
+{
+public:
+	RealZoom();
+	RealZoom(qreal xMin, qreal xMax, qreal yMin, qreal yMax);
+	inline qreal xMin() const;
+	inline qreal xMax() const;
+	inline qreal yMin() const;
+	inline qreal yMax() const;
+	inline qreal width() const;
+	inline qreal height() const;
+
+	inline void setXMin(qreal);
+	inline void setXMax(qreal);
+	inline void setYMin(qreal);
+	inline void setYMax(qreal);
+
+	inline bool isInvalid() const;
+
+private:
+	qreal _xmin;
+	qreal _xmax;
+	qreal _ymin;
+	qreal _ymax;
+	qreal _width;
+	qreal _height;
 };
 
 class XYScene : public QGraphicsScene {
@@ -53,8 +80,8 @@ public:
 
     QList<XYFunction *> &getFunctionsList();
     void addFunction(XYFunction *);
-    QList<const XYScatterplot *> &getScatterplotList();
-    void addScatterplot(const XYScatterplot *);
+	QList<const XYPointList *> &getPointListList();
+	void addScatterplot(const XYPointList *);
 
     const RealZoom &zoom() const;
     void setZoom(const RealZoom &zoom);
@@ -137,12 +164,11 @@ private:
     QPen m_subaxesPen;
     QColor m_textColor;
     QPen m_zoomPen;
-    //	struct XYLook m_look;
 
     RealZoom m_realSceneRect;
 
     QList<XYFunction *> m_functions;
-    QList<const XYScatterplot *> m_scatterplots;
+	QList<const XYPointList *> m_pointlists;
 
     int m_state;
     Qt::MouseButtons m_mouseDontMove;
@@ -167,11 +193,11 @@ private:
     friend class XYScene;
 };
 
-class XYScatterplot : public QList<QPointF>
+class XYPointList : public QList<QPointF>
 {
 public:
-    XYScatterplot(const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen(Qt::NoPen));
-    XYScatterplot(const QList<QPointF> &points, const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen(Qt::NoPen));
+	XYPointList(const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen(Qt::NoPen));
+	XYPointList(const QList<QPointF> &points, const QPen &dotPen = QPen(), const QBrush &dotBrush = QBrush(), qreal dotRadius = 2.0, const QPen &linePen = QPen(Qt::NoPen));
     QList<QPointF> &getPoints();
     const QList<QPointF> &getPoints() const;
     void setVisible(bool visible);
@@ -240,6 +266,71 @@ QRectF XYScene::real2image(const RealZoom &real) const {
 
 RealZoom XYScene::image2real(const QRectF &image) const {
     return RealZoom(xi2r(image.left()), xi2r(image.right()), yi2r(image.bottom()), yi2r(image.top()));
+}
+
+
+
+
+inline RealZoom::RealZoom()
+	: _xmin(-10.0), _xmax(10.0), _ymin(-10.0), _ymax(10.0)
+{
+	_width = _xmax - _xmin;
+	_height = _ymax - _ymin;
+}
+
+inline RealZoom::RealZoom(qreal xMin, qreal xMax, qreal yMin, qreal yMax)
+	: _xmin(xMin), _xmax(xMax), _ymin(yMin), _ymax(yMax)
+{
+	_width = _xmax - _xmin;
+	_height = _ymax - _ymin;
+}
+
+inline qreal RealZoom::xMin() const {
+	return _xmin;
+}
+
+inline qreal RealZoom::xMax() const {
+	return _xmax;
+}
+
+inline qreal RealZoom::yMin() const {
+	return _ymin;
+}
+
+inline qreal RealZoom::yMax() const {
+	return _ymax;
+}
+
+inline qreal RealZoom::width() const {
+	return _width;
+}
+
+inline qreal RealZoom::height() const {
+	return _height;
+}
+
+inline void RealZoom::setXMin(qreal x) {
+	_xmin = x;
+	_width = _xmax - _xmin;
+}
+
+inline void RealZoom::setXMax(qreal x) {
+	_xmax = x;
+	_width = _xmax - _xmin;
+}
+
+inline void RealZoom::setYMin(qreal y) {
+	_ymin = y;
+	_height = _ymax - _ymin;
+}
+
+inline void RealZoom::setYMax(qreal y) {
+	_ymax = y;
+	_height = _ymax - _ymin;
+}
+
+inline bool RealZoom::isInvalid() const {
+	return _width <= 0.0 || _height <= 0.0 || std::isinf(_width) || std::isinf(_height) || std::isnan(_width) || std::isnan(_height);
 }
 
 #endif // XYSCENE_H

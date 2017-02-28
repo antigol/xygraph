@@ -1,12 +1,12 @@
 #include <QApplication>
-#include "xygraph.hpp"
-#include "xyscene.hpp"
+#include "xyview.hh"
+#include "xyscene.hh"
 #include <cmath>
 #include <QDebug>
 
 class Sinusoidal : public XYFunction {
 public :
-	qreal y(qreal x)
+	qreal y(qreal x) override
 	{
 		return std::pow(std::sin(x),3);
 	}
@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
 	QList<QPointF> points;
 	points << QPointF(0.0, 0.0) << QPointF(0.5, 1.0) << QPointF(1.0, 1.0) << QPointF(1.045, 1.05);
 
-	XYScatterplot my_scatterplot(points, QPen(), QBrush(), 5.0, QPen(Qt::red));
-	scene.addScatterplot(&my_scatterplot);
+	XYPointList my_pointlist(points, QPen(), QBrush(), 5.0, QPen(Qt::red));
+	scene.addScatterplot(&my_pointlist);
 
 	// add function
 	Sinusoidal sinus;
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	scene.relativeZoom(1.2);
 
 	// create the view
-	XYGraph graph(&scene);
+	XYView graph(&scene);
 	graph.setWindowTitle("Test 1");
 	graph.show();
 	graph.resize(600, 600);

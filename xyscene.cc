@@ -14,7 +14,7 @@ as the name is changed.
  0. You just DO WHAT THE FUCK YOU WANT TO.
 */
 
-#include "xyscene.hpp"
+#include "xyscene.hh"
 
 #include <QGraphicsTextItem>
 #include <QKeyEvent>
@@ -65,14 +65,14 @@ void XYScene::addFunction(XYFunction *ptr)
     m_functions.append(ptr);
 }
 
-QList<const XYScatterplot *> &XYScene::getScatterplotList()
+QList<const XYPointList *> &XYScene::getPointListList()
 {
-    return m_scatterplots;
+	return m_pointlists;
 }
 
-void XYScene::addScatterplot(const XYScatterplot *ptr)
+void XYScene::addScatterplot(const XYPointList *ptr)
 {
-    m_scatterplots.append(ptr);
+	m_pointlists.append(ptr);
 }
 
 void XYScene::maiRegraph()
@@ -296,31 +296,31 @@ void XYScene::drawfunctions()
 
 void XYScene::drawpoints()
 {
-    for (int i = 0; i < m_scatterplots.size(); ++i) {
-        if (!m_scatterplots[i]->isVisible())
+	for (int i = 0; i < m_pointlists.size(); ++i) {
+		if (!m_pointlists[i]->isVisible())
             continue;
 
-        if (m_scatterplots[i]->m_linepen != QPen(Qt::NoPen)) {
+		if (m_pointlists[i]->m_linepen != QPen(Qt::NoPen)) {
             QPainterPath path;
-            for (int p = 0; p < m_scatterplots[i]->size(); ++p) {
-                const QPointF point = real2image(m_scatterplots[i]->at(p));
+			for (int p = 0; p < m_pointlists[i]->size(); ++p) {
+				const QPointF point = real2image(m_pointlists[i]->at(p));
                 if (p == 0)
                     path.moveTo(point);
                 else
                     path.lineTo(point);
             }
-            addPath(path, m_scatterplots[i]->m_linepen);
+			addPath(path, m_pointlists[i]->m_linepen);
         }
 
         /* draw ellipses */
-        const qreal r = m_scatterplots[i]->m_r;
+		const qreal r = m_pointlists[i]->m_r;
         const qreal d = 2.0 * r;
         if (r != 0.0) {
-            for (int p = 0; p < m_scatterplots[i]->size(); ++p) {
-                QGraphicsEllipseItem *item = addEllipse(-r, -r, d, d, m_scatterplots[i]->m_pen, m_scatterplots[i]->m_brush);
-                item->setPos(xr2i(m_scatterplots[i]->at(p).x()), yr2i(m_scatterplots[i]->at(p).y()));
-                item->setData(XValue, m_scatterplots[i]->at(p).x());
-                item->setData(YValue, m_scatterplots[i]->at(p).y());
+			for (int p = 0; p < m_pointlists[i]->size(); ++p) {
+				QGraphicsEllipseItem *item = addEllipse(-r, -r, d, d, m_pointlists[i]->m_pen, m_pointlists[i]->m_brush);
+				item->setPos(xr2i(m_pointlists[i]->at(p).x()), yr2i(m_pointlists[i]->at(p).y()));
+				item->setData(XValue, m_pointlists[i]->at(p).x());
+				item->setData(YValue, m_pointlists[i]->at(p).y());
                 item->setData(Type, TypeScatter);
             }
         }
@@ -384,10 +384,10 @@ void XYScene::relativeZoom(qreal k)
 void XYScene::autoZoom()
 {
     QPointF firstPoint;
-    for (int i = 0; i < m_scatterplots.size(); ++i) {
-        if (!m_scatterplots[i]->isEmpty()
-                && m_scatterplots[i]->isVisible()) {
-            firstPoint = m_scatterplots[i]->first();
+	for (int i = 0; i < m_pointlists.size(); ++i) {
+		if (!m_pointlists[i]->isEmpty()
+				&& m_pointlists[i]->isVisible()) {
+			firstPoint = m_pointlists[i]->first();
             break;
         }
     }
@@ -397,16 +397,16 @@ void XYScene::autoZoom()
     qreal ymin = firstPoint.y();
     qreal ymax = ymin;
 
-    for (int i = 0; i < m_scatterplots.size(); ++i) {
-        for (int j = 1; j < m_scatterplots[i]->size(); ++j) {
-            if (m_scatterplots[i]->at(j).x() < xmin)
-                xmin = m_scatterplots[i]->at(j).x();
-            if (m_scatterplots[i]->at(j).x() > xmax)
-                xmax = m_scatterplots[i]->at(j).x();
-            if (m_scatterplots[i]->at(j).y() < ymin)
-                ymin = m_scatterplots[i]->at(j).y();
-            if (m_scatterplots[i]->at(j).y() > ymax)
-                ymax = m_scatterplots[i]->at(j).y();
+	for (int i = 0; i < m_pointlists.size(); ++i) {
+		for (int j = 1; j < m_pointlists[i]->size(); ++j) {
+			if (m_pointlists[i]->at(j).x() < xmin)
+				xmin = m_pointlists[i]->at(j).x();
+			if (m_pointlists[i]->at(j).x() > xmax)
+				xmax = m_pointlists[i]->at(j).x();
+			if (m_pointlists[i]->at(j).y() < ymin)
+				ymin = m_pointlists[i]->at(j).y();
+			if (m_pointlists[i]->at(j).y() > ymax)
+				ymax = m_pointlists[i]->at(j).y();
         }
     }
 
@@ -711,50 +711,50 @@ bool XYFunction::domain(qreal x) const
 
 /* XYScatterplot IMPLANTATION */
 
-XYScatterplot::XYScatterplot(const QPen &pen, const QBrush &brush, qreal r, const QPen &linePen)
+XYPointList::XYPointList(const QPen &pen, const QBrush &brush, qreal r, const QPen &linePen)
     : m_visible(true), m_pen(pen), m_brush(brush), m_r(r), m_linepen(linePen)
 {
 }
 
-XYScatterplot::XYScatterplot(const QList<QPointF> &points, const QPen &pen, const QBrush &brush, qreal r, const QPen &linePen)
+XYPointList::XYPointList(const QList<QPointF> &points, const QPen &pen, const QBrush &brush, qreal r, const QPen &linePen)
     : QList<QPointF>(points), m_visible(true), m_pen(pen), m_brush(brush), m_r(r), m_linepen(linePen)
 {
 }
 
-QList<QPointF> &XYScatterplot::getPoints()
+QList<QPointF> &XYPointList::getPoints()
 {
     return *this;
 }
 
-const QList<QPointF> &XYScatterplot::getPoints() const
+const QList<QPointF> &XYPointList::getPoints() const
 {
     return *this;
 }
 
-void XYScatterplot::setVisible(bool visible)
+void XYPointList::setVisible(bool visible)
 {
     m_visible = visible;
 }
 
-bool XYScatterplot::isVisible() const
+bool XYPointList::isVisible() const
 {
     return m_visible;
 }
 
-void XYScatterplot::setPen(const QPen &pen)
+void XYPointList::setPen(const QPen &pen)
 {
     m_pen = pen;
 }
 
-void XYScatterplot::setBrush(const QBrush &brush)
+void XYPointList::setBrush(const QBrush &brush)
 {
     m_brush = brush;
 }
 
-void XYScatterplot::setRadius(qreal r) {
+void XYPointList::setRadius(qreal r) {
     m_r = r;
 }
 
-void XYScatterplot::setLinePen(const QPen &pen) {
+void XYPointList::setLinePen(const QPen &pen) {
     m_linepen = pen;
 }

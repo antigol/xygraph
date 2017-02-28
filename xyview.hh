@@ -22,11 +22,11 @@ as the name is changed.
 class QResizeEvent;
 class QTimer;
 
-class XYGraph : public QGraphicsView {
+class XYView : public QGraphicsView {
     Q_OBJECT
 public:
-    explicit XYGraph(QWidget *parent = 0);
-    explicit XYGraph(QGraphicsScene *scene, QWidget *parent = 0);
+	explicit XYView(QWidget *parent = 0);
+	explicit XYView(QGraphicsScene *scene, QWidget *parent = 0);
 
 protected:
     virtual void resizeEvent(QResizeEvent *);

@@ -542,9 +542,11 @@ void XYScene::wheelEvent(QGraphicsSceneWheelEvent *wheelEvent)
     const qreal yMin = m_realSceneRect.yMin() - m_realSceneRect.height() * zoom * dyMin;
     const qreal yMax = m_realSceneRect.yMax() + m_realSceneRect.height() * zoom * dyMax;
 
-    setZoom(xMin, xMax, yMin, yMax);
+    if (xMin < xMax && yMin < yMax) {
+        setZoom(xMin, xMax, yMin, yMax);
 
-    regraph();
+        regraph();
+    }
 }
 
 void XYScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)

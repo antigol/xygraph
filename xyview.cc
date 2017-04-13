@@ -24,7 +24,7 @@ XYView::XYView(QWidget *parent) :
 {
     initialisation();
 
-    setToolTip("left click to drag\nright click to zoom");
+    setToolTip("left click to drag\nright click to zoom\ndouble right click to auto zoom");
 }
 
 XYView::XYView(QGraphicsScene *scene, QWidget *parent) :

@@ -378,9 +378,11 @@ void Graph::paintPointLists(QPainter& painter)
         painter.drawPath(path);
     }
     for (int i = 0; i < m_pointLists.size(); ++i) {
+        qreal r = m_pointLists[i]->dotRadius;
+        if (r <= 0.0) continue;
+
         painter.setPen(m_pointLists[i]->dotPen);
         painter.setBrush(m_pointLists[i]->dotBrush);
-        qreal r = m_pointLists[i]->dotRadius;
         for (int j = 0; j < m_pointLists[i]->size(); ++j) {
             const QPointF point = real2image(m_pointLists[i]->at(j));
             painter.drawEllipse(point, r, r);

@@ -43,6 +43,10 @@ public:
     void addFunction(Function* function);
 
     void autoZoom();
+    inline qreal xmin() const { return m_zoomMin.x(); }
+    inline qreal xmax() const { return m_zoomMax.x(); }
+    inline qreal ymin() const { return m_zoomMin.y(); }
+    inline qreal ymax() const { return m_zoomMax.y(); }
     void setZoom(qreal xmin, qreal xmax, qreal ymin, qreal ymax);
 
     qreal xr2i(qreal xr) const;

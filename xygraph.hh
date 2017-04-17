@@ -66,6 +66,9 @@ public:
     QPen textPen;
     QPen zoomPen;
 
+    QList<PointList*> pointLists;
+    QList<Function*> functions;
+
 private:
     void paintAxes(QPainter& painter);
     void paintText(QPainter& painter);
@@ -82,9 +85,6 @@ private:
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
-
-    QList<PointList*> m_pointLists;
-    QList<Function*> m_functions;
 
     QPointF m_zoomMin;
     QPointF m_zoomMax;

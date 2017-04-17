@@ -45,20 +45,20 @@ Graph::~Graph()
 
 void Graph::addPointList(PointList *pointList)
 {
-    m_pointLists << pointList;
+    pointLists << pointList;
 }
 
 void Graph::addFunction(Function *function)
 {
-    m_functions << function;
+    functions << function;
 }
 
 void Graph::autoZoom()
 {
     QPointF firstPoint;
-    for (int i = 0; i < m_pointLists.size(); ++i) {
-        if (!m_pointLists[i]->isEmpty()) {
-            firstPoint = m_pointLists[i]->first();
+    for (int i = 0; i < pointLists.size(); ++i) {
+        if (!pointLists[i]->isEmpty()) {
+            firstPoint = pointLists[i]->first();
             break;
         }
     }
@@ -68,16 +68,16 @@ void Graph::autoZoom()
     qreal ymin = firstPoint.y();
     qreal ymax = ymin;
 
-    for (int i = 0; i < m_pointLists.size(); ++i) {
-        for (int j = 1; j < m_pointLists[i]->size(); ++j) {
-            if (m_pointLists[i]->at(j).x() < xmin)
-                xmin = m_pointLists[i]->at(j).x();
-            if (m_pointLists[i]->at(j).x() > xmax)
-                xmax = m_pointLists[i]->at(j).x();
-            if (m_pointLists[i]->at(j).y() < ymin)
-                ymin = m_pointLists[i]->at(j).y();
-            if (m_pointLists[i]->at(j).y() > ymax)
-                ymax = m_pointLists[i]->at(j).y();
+    for (int i = 0; i < pointLists.size(); ++i) {
+        for (int j = 1; j < pointLists[i]->size(); ++j) {
+            if (pointLists[i]->at(j).x() < xmin)
+                xmin = pointLists[i]->at(j).x();
+            if (pointLists[i]->at(j).x() > xmax)
+                xmax = pointLists[i]->at(j).x();
+            if (pointLists[i]->at(j).y() < ymin)
+                ymin = pointLists[i]->at(j).y();
+            if (pointLists[i]->at(j).y() > ymax)
+                ymax = pointLists[i]->at(j).y();
         }
     }
 
@@ -361,30 +361,30 @@ void Graph::paintText(QPainter &painter)
 
 void Graph::paintPointLists(QPainter& painter)
 {
-    for (int i = 0; i < m_pointLists.size(); ++i) {
+    for (int i = 0; i < pointLists.size(); ++i) {
         QPainterPath path;
 
-        if (!m_pointLists[i]->isEmpty()) {
-            const QPointF point = real2image(m_pointLists[i]->first());
+        if (!pointLists[i]->isEmpty()) {
+            const QPointF point = real2image(pointLists[i]->first());
             path.moveTo(point);
         }
 
-        for (int j = 1; j < m_pointLists[i]->size(); ++j) {
-            const QPointF point = real2image(m_pointLists[i]->at(j));
+        for (int j = 1; j < pointLists[i]->size(); ++j) {
+            const QPointF point = real2image(pointLists[i]->at(j));
             path.lineTo(point);
         }
-        painter.setPen(m_pointLists[i]->linePen);
+        painter.setPen(pointLists[i]->linePen);
         painter.setBrush(Qt::NoBrush);
         painter.drawPath(path);
     }
-    for (int i = 0; i < m_pointLists.size(); ++i) {
-        qreal r = m_pointLists[i]->dotRadius;
+    for (int i = 0; i < pointLists.size(); ++i) {
+        qreal r = pointLists[i]->dotRadius;
         if (r <= 0.0) continue;
 
-        painter.setPen(m_pointLists[i]->dotPen);
-        painter.setBrush(m_pointLists[i]->dotBrush);
-        for (int j = 0; j < m_pointLists[i]->size(); ++j) {
-            const QPointF point = real2image(m_pointLists[i]->at(j));
+        painter.setPen(pointLists[i]->dotPen);
+        painter.setBrush(pointLists[i]->dotBrush);
+        for (int j = 0; j < pointLists[i]->size(); ++j) {
+            const QPointF point = real2image(pointLists[i]->at(j));
             painter.drawEllipse(point, r, r);
         }
     }
@@ -392,13 +392,13 @@ void Graph::paintPointLists(QPainter& painter)
 
 void Graph::paintFunctions(QPainter& painter)
 {
-    for (int i = 0; i < m_functions.size(); ++i) {
+    for (int i = 0; i < functions.size(); ++i) {
         QPainterPath path;
         bool startPath = false;
         for (qreal ximage = 0; ximage < width(); ximage += 1.5) {
             qreal xreal = xi2r(ximage);
-            if (m_functions[i]->domain(xreal)) {
-                qreal yreal = m_functions[i]->y(xreal);
+            if (functions[i]->domain(xreal)) {
+                qreal yreal = functions[i]->y(xreal);
                 if (!std::isnan(yreal) && !std::isinf(yreal)) {
                     if (startPath) {
                         path.lineTo(ximage, yr2i(yreal));
@@ -413,7 +413,7 @@ void Graph::paintFunctions(QPainter& painter)
                 startPath = false;
             }
         }
-        painter.setPen(m_functions[i]->pen);
+        painter.setPen(functions[i]->pen);
         painter.setBrush(Qt::NoBrush);
         painter.drawPath(path);
     }

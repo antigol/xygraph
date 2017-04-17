@@ -11,6 +11,8 @@ Function::Function(const QPen& pen) : pen(pen) {}
 Function::~Function() {}
 bool Function::domain(qreal x) const { Q_UNUSED(x); return true; }
 
+PointList::PointList() {}
+
 PointList::PointList(const QList<QPointF> &points)
     : QList<QPointF>(points),
       linePen(Qt::white),

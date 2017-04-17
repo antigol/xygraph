@@ -23,6 +23,7 @@ public:
 class PointList : public QList<QPointF>
 {
 public:
+    PointList();
     PointList(const QList<QPointF>& points);
 
     QPen linePen;

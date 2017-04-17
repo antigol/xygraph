@@ -29,8 +29,12 @@ int main(int argc, char *argv[])
 	QList<QPointF> points;
 	points << QPointF(0.0, 0.0) << QPointF(0.5, 1.0) << QPointF(1.0, 1.0) << QPointF(1.045, 1.05);
 
+    for (int i = 0; i < 10000; ++i) {
+        points << QPointF(i, qrand());
+    }
+
 	XYPointList my_pointlist(points, QPen(), QBrush(), 5.0, QPen(Qt::red));
-	scene.addScatterplot(&my_pointlist);
+	scene.addPointList(&my_pointlist);
 
 	// add function
 	Sinusoidal sinus;

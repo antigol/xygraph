@@ -49,6 +49,8 @@ XYScene::XYScene(QObject *parent) :
     connect(m_timerZoom, SIGNAL(timeout()), this, SIGNAL(zoomChanged()));
 
     connect(this, SIGNAL(sceneRectChanged(QRectF)), this, SLOT(maiRegraph()));
+
+    setItemIndexMethod(QGraphicsScene::NoIndex);
 }
 
 XYScene::~XYScene()
@@ -70,7 +72,7 @@ QList<const XYPointList *> &XYScene::getPointListList()
 	return m_pointlists;
 }
 
-void XYScene::addScatterplot(const XYPointList *ptr)
+void XYScene::addPointList(const XYPointList *ptr)
 {
 	m_pointlists.append(ptr);
 }
@@ -93,8 +95,8 @@ void XYScene::regraph()
         return;
 
     // il va se faire supprimer par clear
-    m_positionPointText = 0;
-    m_positionPointEllipse = 0;
+    m_positionPointText = nullptr;
+    m_positionPointEllipse = nullptr;
 
     clear();
 

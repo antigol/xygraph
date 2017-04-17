@@ -81,7 +81,7 @@ public:
     QList<XYFunction *> &getFunctionsList();
     void addFunction(XYFunction *);
 	QList<const XYPointList *> &getPointListList();
-	void addScatterplot(const XYPointList *);
+    void addPointList(const XYPointList *);
 
     const RealZoom &zoom() const;
     void setZoom(const RealZoom &zoom);

@@ -1,14 +1,15 @@
 #include <QApplication>
-#include "xyview.hh"
-#include "xyscene.hh"
+//#include "xyview.hh"
+//#include "xyscene.hh"
+#include "xygraph.hh"
 #include <cmath>
 #include <QDebug>
 
-class Sinusoidal : public XYFunction {
+class Sinusoidal : public XY::Function {
 public :
 	qreal y(qreal x) override
 	{
-		return std::pow(std::sin(x),3);
+        return std::sin(x);
 	}
 
 };
@@ -17,6 +18,12 @@ int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 
+    QList<QPointF> points;
+    for (int i = 0; i < 10000; ++i) {
+        points << QPointF(qreal(i) / 10000, qreal(qrand()) / RAND_MAX - 0.5);
+    }
+
+    /*
 	XYScene scene;
 	scene.setBackgroundBrush(QBrush(Qt::white));
 	scene.setSubaxesPen(Qt::NoPen);
@@ -26,12 +33,6 @@ int main(int argc, char *argv[])
 	scene.setFlag(XYScene::ShowPointPosition);
 
 	// add scatter points
-	QList<QPointF> points;
-	points << QPointF(0.0, 0.0) << QPointF(0.5, 1.0) << QPointF(1.0, 1.0) << QPointF(1.045, 1.05);
-
-    for (int i = 0; i < 10000; ++i) {
-        points << QPointF(i, qrand());
-    }
 
 	XYPointList my_pointlist(points, QPen(), QBrush(), 5.0, QPen(Qt::red));
 	scene.addPointList(&my_pointlist);
@@ -48,6 +49,18 @@ int main(int argc, char *argv[])
 	graph.setWindowTitle("Test 1");
 	graph.show();
 	graph.resize(600, 600);
+    */
+
+    XY::Graph graph;
+
+    XY::PointList pointlist(points);
+    Sinusoidal sin;
+
+    graph.addPointList(&pointlist);
+    graph.addFunction(&sin);
+    graph.autoZoom();
+
+    graph.show();
 
 	return a.exec();
 }

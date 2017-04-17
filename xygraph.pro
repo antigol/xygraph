@@ -5,8 +5,10 @@ TEMPLATE = app
 
 SOURCES += xyscene.cc \
     xyview.cc \
-    main.cc
+    main.cc \
+    xygraph.cc
 
 HEADERS += \
     xyscene.hh \
-    xyview.hh
+    xyview.hh \
+    xygraph.hh

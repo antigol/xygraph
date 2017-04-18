@@ -2,11 +2,12 @@
 #define XYGRAPH_HH
 
 #include <QOpenGLWidget>
-#include <QTimer>
 #include <QPen>
 #include <QBrush>
 
 namespace XY {
+
+//================= FUNCTION =================//
 
 class Function
 {
@@ -20,6 +21,8 @@ public:
     QPen pen;
 };
 
+//================= POINTLIST =================//
+
 class PointList : public QList<QPointF>
 {
 public:
@@ -31,6 +34,8 @@ public:
     QPen dotPen;
     QBrush dotBrush;
 };
+
+//================= GRAPH =================//
 
 class Graph : public QOpenGLWidget
 {
@@ -94,8 +99,6 @@ private:
 
     QPointF m_zoomMin;
     QPointF m_zoomMax;
-
-    QTimer m_timerRegraph;
 
     QPointF m_lastMousePos;
     QPoint m_zoomRectOrigin;

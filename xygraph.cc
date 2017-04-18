@@ -1,10 +1,11 @@
 #include "xygraph.hh"
-#include <QPaintEvent>
+#include <QMouseEvent>
 #include <QPainter>
 #include <cmath>
-#include <QDebug>
 
 namespace XY {
+
+//================= FUNCTION =================//
 
 Function::Function(const QPen& pen) : pen(pen) {}
 
@@ -12,6 +13,8 @@ Function::~Function() {}
 bool Function::domain(qreal x) const { Q_UNUSED(x); return true; }
 
 PointList::PointList() {}
+
+//================= POINTLIST =================//
 
 PointList::PointList(const QList<QPointF> &points)
     : QList<QPointF>(points),
@@ -22,6 +25,7 @@ PointList::PointList(const QList<QPointF> &points)
 {
 }
 
+//================= GRAPH =================//
 
 Graph::Graph(QWidget *parent)
     : QOpenGLWidget(parent),
@@ -35,7 +39,7 @@ Graph::Graph(QWidget *parent)
       m_zoomRectOrigin(-1, 0),
       m_zoomRectDest(-1, 0)
 {
-    connect(&m_timerRegraph, SIGNAL(timeout()), this, SLOT(update()));
+    setToolTip("left click to drag\nright click to zoom\ndouble right click to auto zoom");
 }
 
 Graph::~Graph()
@@ -437,13 +441,11 @@ void Graph::mousePressEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton) {
         m_lastMousePos = event->pos();
-        m_timerRegraph.start();
     }
 
     if (event->buttons() & Qt::RightButton) {
         m_zoomRectOrigin = event->pos();
         m_zoomRectDest.setX(-1);
-        m_timerRegraph.start();
     }
 }
 
@@ -456,9 +458,12 @@ void Graph::mouseMoveEvent(QMouseEvent *event)
 
         m_zoomMin += delta;
         m_zoomMax += delta;
+
+        update();
     } else if (event->buttons() & Qt::RightButton) {
         if (m_zoomRectOrigin.x() > 0) {
             m_zoomRectDest = event->pos();
+            update();
         }
     }
 
@@ -476,13 +481,11 @@ void Graph::mouseReleaseEvent(QMouseEvent *event)
                                        qMin(m_zoomRectOrigin.y(), m_zoomRectDest.y())));
         m_zoomMin = zMin;
 
-
         update();
     }
 
     m_zoomRectOrigin.setX(-1);
     m_zoomRectDest.setX(-1);
-    m_timerRegraph.stop();
 }
 
 void Graph::mouseDoubleClickEvent(QMouseEvent *event)
@@ -490,6 +493,7 @@ void Graph::mouseDoubleClickEvent(QMouseEvent *event)
     Q_UNUSED(event);
 
     autoZoom();
+    relativeZoom(1.01);
 
     update();
 }

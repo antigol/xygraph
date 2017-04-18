@@ -39,15 +39,21 @@ public:
     explicit Graph(QWidget *parent = 0);
     virtual ~Graph();
 
-    void addPointList(PointList* pointList);
-    void addFunction(Function* function);
-
-    void autoZoom();
     inline qreal xmin() const { return m_zoomMin.x(); }
     inline qreal xmax() const { return m_zoomMax.x(); }
     inline qreal ymin() const { return m_zoomMin.y(); }
     inline qreal ymax() const { return m_zoomMax.y(); }
-    void setZoom(qreal xmin, qreal xmax, qreal ymin, qreal ymax);
+    inline qreal xwidth()  const { return m_zoomMax.x() - m_zoomMin.x(); }
+    inline qreal yheight() const { return m_zoomMax.y() - m_zoomMin.y(); }
+    inline void setxmin(qreal o) { m_zoomMin.rx() = o; }
+    inline void setxmax(qreal o) { m_zoomMax.rx() = o; }
+    inline void setymin(qreal o) { m_zoomMin.ry() = o; }
+    inline void setymax(qreal o) { m_zoomMax.ry() = o; }
+    inline void setZoom(qreal xmin, qreal xmax, qreal ymin, qreal ymax)
+    { m_zoomMin = QPointF(xmin, ymin); m_zoomMax = QPointF(xmax, ymax); }
+
+    void autoZoom();
+    void relativeZoom(qreal factor);
 
     qreal xr2i(qreal xr) const;
     qreal xi2r(qreal xi) const;

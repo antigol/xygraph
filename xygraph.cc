@@ -43,16 +43,6 @@ Graph::~Graph()
 
 }
 
-void Graph::addPointList(PointList *pointList)
-{
-    pointLists << pointList;
-}
-
-void Graph::addFunction(Function *function)
-{
-    functions << function;
-}
-
 void Graph::autoZoom()
 {
     QPointF firstPoint;
@@ -85,13 +75,12 @@ void Graph::autoZoom()
         setZoom(xmin, xmax, ymin, ymax);
 }
 
-void Graph::setZoom(qreal xmin, qreal xmax, qreal ymin, qreal ymax)
+void Graph::relativeZoom(qreal factor)
 {
-    m_zoomMin.setX(xmin);
-    m_zoomMin.setY(ymin);
+    QPointF center = 0.5 * (m_zoomMax + m_zoomMin);
 
-    m_zoomMax.setX(xmax);
-    m_zoomMax.setY(ymax);
+    m_zoomMax = center + factor * (m_zoomMax - center);
+    m_zoomMin = center + factor * (m_zoomMin - center);
 }
 
 qreal Graph::xr2i(qreal xr) const {
@@ -155,14 +144,7 @@ void Graph::paintAxes(QPainter &painter)
     if (imageZero.y() > height())
         imageZero.ry() = height();
 
-    // les deux lignes du 0
-    painter.setPen(axesPen);
-    painter.drawLine(0, imageZero.y(), width(), imageZero.y());
-    painter.drawLine(imageZero.x(), 0, imageZero.x(), height());
-
-
-    QPainterPath path, subpath;
-    QFontMetrics fm(painter.font());
+    QPainterPath ticks, grid;
 
     // graduation de l'axe X
     {
@@ -184,25 +166,19 @@ void Graph::paintAxes(QPainter &painter)
             }
         }
 
-        // graduation X avec la division
-        qreal yTxtPos = imageZero.y();
-        if (imageZero.y() < height() / 2.0)
-            yTxtPos += 15.0;
-        else
-            yTxtPos -= 10.0;
-
-        const int xmax = ceil(m_zoomMax.x() / div);
-        for (int x = ceil(m_zoomMin.x() / div); x < xmax; ++x) {
+        const int xmax = std::ceil(m_zoomMax.x() / div);
+        for (int x = std::ceil(m_zoomMin.x() / div); x < xmax; ++x) {
             if (x == 0)
                 continue;
+
             qreal xreal = x * div;
             qreal ximage = xr2i(xreal);
 
-            path.moveTo(ximage, imageZero.y() - LENGTH);
-            path.lineTo(ximage, imageZero.y() + LENGTH);
+            ticks.moveTo(ximage, imageZero.y() - LENGTH);
+            ticks.lineTo(ximage, imageZero.y() + LENGTH);
 
-            subpath.moveTo(ximage, height());
-            subpath.lineTo(ximage, 0);
+            grid.moveTo(ximage, height());
+            grid.lineTo(ximage, 0);
         }
     }
 
@@ -227,26 +203,34 @@ void Graph::paintAxes(QPainter &painter)
         }
 
         // graduation Y avec la division
-        const int ymax = ceil(m_zoomMax.y() / div);
-        for (int y = ceil(m_zoomMin.y() / div); y < ymax; ++y) {
+        const int ymax = std::ceil(m_zoomMax.y() / div);
+        for (int y = std::ceil(m_zoomMin.y() / div); y < ymax; ++y) {
             if (y == 0)
                 continue;
+
             qreal yreal = y * div;
             qreal yimage = yr2i(yreal);
 
-            path.moveTo(imageZero.x() - LENGTH, yimage);
-            path.lineTo(imageZero.x() + LENGTH, yimage);
+            ticks.moveTo(imageZero.x() - LENGTH, yimage);
+            ticks.lineTo(imageZero.x() + LENGTH, yimage);
 
-            subpath.moveTo(0, yimage);
-            subpath.lineTo(width(), yimage);
+            grid.moveTo(0, yimage);
+            grid.lineTo(width(), yimage);
         }
     }
 
+    painter.setBrush(Qt::NoBrush);
+
+    // les deux lignes du 0
+    painter.setPen(axesPen);
+    painter.drawLine(0, imageZero.y(), width(), imageZero.y());
+    painter.drawLine(imageZero.x(), 0, imageZero.x(), height());
+
     painter.setPen(subaxesPen);
-    painter.drawPath(subpath);
+    painter.drawPath(grid);
 
     painter.setPen(axesPen);
-    painter.drawPath(path);
+    painter.drawPath(ticks);
 }
 
 void Graph::paintText(QPainter &painter)
@@ -293,14 +277,12 @@ void Graph::paintText(QPainter &painter)
         // graduation X avec la division
         qreal yTxtPos = imageZero.y();
         if (imageZero.y() < height() / 2.0)
-            yTxtPos += 15.0;
+            yTxtPos += 25.0;
         else
             yTxtPos -= 10.0;
 
-        const int xmax = ceil(m_zoomMax.x() / div);
-        for (int x = ceil(m_zoomMin.x() / div); x < xmax; ++x) {
-            if (x == 0)
-                continue;
+        const int xmax = std::ceil(m_zoomMax.x() / div);
+        for (int x = std::ceil(m_zoomMin.x() / div); x < xmax; ++x) {
             qreal xreal = x * div;
             qreal ximage = xr2i(xreal);
 
@@ -337,21 +319,19 @@ void Graph::paintText(QPainter &painter)
         // graduation Y avec la division
         bool textOnRight = imageZero.x() < width() / 2.0;
 
-        const int ymax = ceil(m_zoomMax.y() / div);
-        for (int y = ceil(m_zoomMin.y() / div); y < ymax; ++y) {
-            if (y == 0)
-                continue;
+        const int ymax = std::ceil(m_zoomMax.y() / div);
+        for (int y = std::ceil(m_zoomMin.y() / div); y < ymax; ++y) {
             qreal yreal = y * div;
             qreal yimage = yr2i(yreal);
 
             if (qAbs(yimage - imageZero.y()) > 30.0) {
                 QString text = QString::number(yreal);
-                QPoint position(imageZero.x(), yimage - 1);
+                QPoint position(imageZero.x(), yimage + 0.4 * fm.ascent());
 
                 if (textOnRight)
-                    position.rx() += 7.0;
+                    position.rx() += 10.0;
                 else
-                    position.rx() -= fm.boundingRect(text).width() + 12.0;
+                    position.rx() -= fm.width(text) + 12.0;
 
                 painter.drawText(position, text);
             }

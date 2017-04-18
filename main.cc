@@ -1,9 +1,6 @@
 #include <QApplication>
-//#include "xyview.hh"
-//#include "xyscene.hh"
 #include "xygraph.hh"
 #include <cmath>
-#include <QDebug>
 
 class Sinusoidal : public XY::Function {
 public :
@@ -19,46 +16,24 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 
     QList<QPointF> points;
-    for (int i = 0; i < 10000; ++i) {
-        points << QPointF(qreal(i) / 10000, qreal(qrand()) / RAND_MAX - 0.5);
+    for (int i = 0; i < 1000; ++i) {
+        points << QPointF(20.0 * i / 1000 - 10.0, 2.0 * qrand() / RAND_MAX - 1.0);
     }
-
-    /*
-	XYScene scene;
-	scene.setBackgroundBrush(QBrush(Qt::white));
-	scene.setSubaxesPen(Qt::NoPen);
-	scene.setAxesPen(QPen());
-	scene.setZoomPen(QPen(Qt::darkGreen));
-	scene.setTextColor(QColor("red"));
-	scene.setFlag(XYScene::ShowPointPosition);
-
-	// add scatter points
-
-	XYPointList my_pointlist(points, QPen(), QBrush(), 5.0, QPen(Qt::red));
-	scene.addPointList(&my_pointlist);
-
-	// add function
-	Sinusoidal sinus;
-	scene.addFunction(&sinus);
-
-	scene.autoZoom();
-	scene.relativeZoom(1.2);
-
-	// create the view
-	XYView graph(&scene);
-	graph.setWindowTitle("Test 1");
-	graph.show();
-	graph.resize(600, 600);
-    */
 
     XY::Graph graph;
 
     XY::PointList pointlist(points);
-    Sinusoidal sin;
+    pointlist.dotBrush = QBrush(Qt::NoBrush);
+    pointlist.dotPen = QPen(Qt::yellow, 2.0);
 
-    graph.addPointList(&pointlist);
-    graph.addFunction(&sin);
+    Sinusoidal sin;
+    sin.pen = QPen(Qt::red, 10.0, Qt::DotLine);
+
+    graph.pointLists << &pointlist;
+    graph.functions << &sin;
+
     graph.autoZoom();
+    graph.relativeZoom(1.1);
 
     graph.show();
 

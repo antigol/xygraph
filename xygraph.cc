@@ -1,4 +1,5 @@
 #include "xygraph.hh"
+#include <QDebug>
 #include <QMouseEvent>
 #include <QPainter>
 #include <cmath>
@@ -47,6 +48,14 @@ Graph::~Graph()
 
 }
 
+void Graph::setZoom(qreal xmin, qreal xmax, qreal ymin, qreal ymax)
+{
+    if (xmin < xmax && ymin < ymax) {
+        m_zoomMin = QPointF(xmin, ymin);
+        m_zoomMax = QPointF(xmax, ymax);
+    }
+}
+
 void Graph::autoZoom()
 {
     QPointF firstPoint;
@@ -83,40 +92,41 @@ void Graph::relativeZoom(qreal factor)
 {
     QPointF center = 0.5 * (m_zoomMax + m_zoomMin);
 
-    m_zoomMax = center + factor * (m_zoomMax - center);
-    m_zoomMin = center + factor * (m_zoomMin - center);
+    QPointF zMin = center + factor * (m_zoomMax - center);
+    QPointF zMax = center + factor * (m_zoomMin - center);
+    setZoom(zMin.x(), zMax.x(), zMin.y(), zMax.y());
 }
 
 qreal Graph::xr2i(qreal xr) const {
-    return (xr - m_zoomMin.x()) * width() / (m_zoomMax.x() - m_zoomMin.x());
+    return (xr - m_zoomMin.x()) * width() / xwidth();
 }
 
 qreal Graph::xi2r(qreal xi) const {
-    return m_zoomMin.x() + xi * (m_zoomMax.x() - m_zoomMin.x()) / width();
+    return m_zoomMin.x() + xi * xwidth() / width();
 }
 
 qreal Graph::yr2i(qreal yr) const {
-    return height() - (yr - m_zoomMin.y()) * height() / (m_zoomMax.y() - m_zoomMin.y());
+    return height() - (yr - m_zoomMin.y()) * height() / yheight();
 }
 
 qreal Graph::yi2r(qreal yi) const {
-    return m_zoomMax.y() - yi * (m_zoomMax.y() - m_zoomMin.y()) / height();
+    return m_zoomMax.y() - yi * yheight() / height();
 }
 
 qreal Graph::wr2i(qreal wr) const {
-    return wr * width() / (m_zoomMax.x() - m_zoomMin.x());
+    return wr * width() / xwidth();
 }
 
 qreal Graph::wi2r(qreal wi) const {
-    return wi * (m_zoomMax.x() - m_zoomMin.x()) / width();
+    return wi * xwidth() / width();
 }
 
 qreal Graph::hr2i(qreal hr) const {
-    return hr * height() / (m_zoomMax.y() - m_zoomMin.y());
+    return hr * height() / yheight();
 }
 
 qreal Graph::hi2r(qreal hi) const {
-    return hi * (m_zoomMax.y() - m_zoomMin.y()) / height();
+    return hi * yheight() / height();
 }
 
 QPointF Graph::real2image(const QPointF &real) const {
@@ -127,14 +137,36 @@ QPointF Graph::image2real(const QPointF &image) const {
     return QPointF(xi2r(image.x()), yi2r(image.y()));
 }
 
-#define PIXELMIN 40.0
-#define LENGTH 5.0
-#define SUITESIZE 4
+#define MIN_PIX_PER_X_DIV 50.0
+#define MIN_PIX_PER_Y_DIV 40.0
+#define TICKS_LENGTH 5.0
+#define DIV_INTERVALS_SIZE 4
+const qreal DIV_INTERVALS[DIV_INTERVALS_SIZE] = {2.0, 2.5, 5.0, 10.0};
+
+qreal Graph::nearestAxisDivision(qreal division)
+{
+    if (division <= 0.0) return 1.0;
+
+    // return the nearest value in DIV_INTERVALS * 10^k
+    qreal decade = 1.0;
+    while (division >= 10.0) {
+        division /= 10.0;
+        decade *= 10.0;
+    }
+    while (division < 1.0) {
+        division *= 10.0;
+        decade /= 10.0;
+    }
+    for (int i = 0; i < DIV_INTERVALS_SIZE; ++i) {
+        if (division < DIV_INTERVALS[i]) {
+            return DIV_INTERVALS[i] * decade;
+        }
+    }
+    return decade;
+}
 
 void Graph::paintAxes(QPainter &painter)
 {
-    qreal suite[SUITESIZE] = {2.0, 2.5, 5.0, 10.0};
-
     QPointF imageZero(real2image(QPointF(0.0, 0.0)));
     if (imageZero.x() < 0)
         imageZero.rx() = 0;
@@ -150,77 +182,38 @@ void Graph::paintAxes(QPainter &painter)
 
     QPainterPath ticks, grid;
 
-    // graduation de l'axe X
-    {
-        // Recherche de la division
-        qreal div = wi2r(PIXELMIN);
-        qreal decade = 1.0;
-        while (div >= 10.0) {
-            div /= 10.0;
-            decade *= 10.0;
-        }
-        while (div < 1.0) {
-            div *= 10.0;
-            decade /= 10.0;
-        }
-        for (int i = 0; i < SUITESIZE; ++i) {
-            if (div < suite[i]) {
-                div = suite[i] * decade;
-                break;
-            }
-        }
+    qreal div = nearestAxisDivision(wi2r(MIN_PIX_PER_X_DIV));
+    const int64_t xmin = std::ceil(m_zoomMin.x() / div);
+    const int64_t xmax = std::ceil(m_zoomMax.x() / div);
+    for (int64_t x = xmin; x < xmax; ++x) {
+        if (x == 0)
+            continue;
 
-        const int xmax = std::ceil(m_zoomMax.x() / div);
-        for (int x = std::ceil(m_zoomMin.x() / div); x < xmax; ++x) {
-            if (x == 0)
-                continue;
+        qreal xreal = x * div;
+        qreal ximage = xr2i(xreal);
 
-            qreal xreal = x * div;
-            qreal ximage = xr2i(xreal);
+        ticks.moveTo(ximage, imageZero.y() - TICKS_LENGTH);
+        ticks.lineTo(ximage, imageZero.y() + TICKS_LENGTH);
 
-            ticks.moveTo(ximage, imageZero.y() - LENGTH);
-            ticks.lineTo(ximage, imageZero.y() + LENGTH);
-
-            grid.moveTo(ximage, height());
-            grid.lineTo(ximage, 0);
-        }
+        grid.moveTo(ximage, height());
+        grid.lineTo(ximage, 0);
     }
 
-    // graduation de l'axe Y
-    {
-        // Recherche de la division
-        qreal div = hi2r(PIXELMIN);
-        qreal decade = 1.0;
-        while (div >= 10.0) {
-            div /= 10.0;
-            decade *= 10.0;
-        }
-        while (div < 1.0) {
-            div *= 10.0;
-            decade /= 10.0;
-        }
-        for (int i = 0; i < SUITESIZE; ++i) {
-            if (div < suite[i]) {
-                div = suite[i] * decade;
-                break;
-            }
-        }
+    div = nearestAxisDivision(hi2r(MIN_PIX_PER_Y_DIV));
+    const int64_t ymin = std::ceil(m_zoomMin.y() / div);
+    const int64_t ymax = std::ceil(m_zoomMax.y() / div);
+    for (int64_t y = ymin; y < ymax; ++y) {
+        if (y == 0)
+            continue;
 
-        // graduation Y avec la division
-        const int ymax = std::ceil(m_zoomMax.y() / div);
-        for (int y = std::ceil(m_zoomMin.y() / div); y < ymax; ++y) {
-            if (y == 0)
-                continue;
+        qreal yreal = y * div;
+        qreal yimage = yr2i(yreal);
 
-            qreal yreal = y * div;
-            qreal yimage = yr2i(yreal);
+        ticks.moveTo(imageZero.x() - TICKS_LENGTH, yimage);
+        ticks.lineTo(imageZero.x() + TICKS_LENGTH, yimage);
 
-            ticks.moveTo(imageZero.x() - LENGTH, yimage);
-            ticks.lineTo(imageZero.x() + LENGTH, yimage);
-
-            grid.moveTo(0, yimage);
-            grid.lineTo(width(), yimage);
-        }
+        grid.moveTo(0, yimage);
+        grid.lineTo(width(), yimage);
     }
 
     painter.setBrush(Qt::NoBrush);
@@ -239,8 +232,6 @@ void Graph::paintAxes(QPainter &painter)
 
 void Graph::paintText(QPainter &painter)
 {
-    qreal suite[SUITESIZE] = {2.0, 2.5, 5.0, 10.0};
-
     QPointF imageZero(real2image(QPointF(0.0, 0.0)));
     if (imageZero.x() < 0)
         imageZero.rx() = 0;
@@ -258,87 +249,48 @@ void Graph::paintText(QPainter &painter)
 
     painter.setPen(textPen);
 
-    // graduation de l'axe X
-    {
-        // Recherche de la division
-        qreal div = wi2r(PIXELMIN);
-        qreal decade = 1.0;
-        while (div >= 10.0) {
-            div /= 10.0;
-            decade *= 10.0;
-        }
-        while (div < 1.0) {
-            div *= 10.0;
-            decade /= 10.0;
-        }
-        for (int i = 0; i < SUITESIZE; ++i) {
-            if (div < suite[i]) {
-                div = suite[i] * decade;
-                break;
-            }
-        }
+    qreal div = nearestAxisDivision(wi2r(MIN_PIX_PER_X_DIV));
 
-        // graduation X avec la division
-        qreal yTxtPos = imageZero.y();
-        if (imageZero.y() < height() / 2.0)
-            yTxtPos += 25.0;
-        else
-            yTxtPos -= 10.0;
+    qreal yTxtPos = imageZero.y();
+    if (imageZero.y() < height() / 2.0)
+        yTxtPos += 25.0;
+    else
+        yTxtPos -= 10.0;
 
-        const int xmax = std::ceil(m_zoomMax.x() / div);
-        for (int x = std::ceil(m_zoomMin.x() / div); x < xmax; ++x) {
-            qreal xreal = x * div;
-            qreal ximage = xr2i(xreal);
+    const int64_t xmin = std::ceil(m_zoomMin.x() / div);
+    const int64_t xmax = std::ceil(m_zoomMax.x() / div);
+    for (int64_t x = xmin; x < xmax; ++x) {
+        qreal xreal = x * div;
+        qreal ximage = xr2i(xreal);
 
-            if (qAbs(ximage - imageZero.x()) > 30.0) {
-                QString text = QString::number(xreal);
-                QPoint position(ximage - fm.boundingRect(text).width() * 0.5 - 2.0,
-                                yTxtPos);
+        if (qAbs(ximage - imageZero.x()) > 30.0) {
+            QString text = QString::number(xreal);
+            QPoint position(ximage - fm.boundingRect(text).width() * 0.5 - 2.0,
+                            yTxtPos);
 
-                painter.drawText(position, text);
-            }
+            painter.drawText(position, text);
         }
     }
 
-    // graduation de l'axe Y
-    {
-        // Recherche de la division
-        qreal div = hi2r(PIXELMIN);
-        qreal decade = 1.0;
-        while (div >= 10.0) {
-            div /= 10.0;
-            decade *= 10.0;
-        }
-        while (div < 1.0) {
-            div *= 10.0;
-            decade /= 10.0;
-        }
-        for (int i = 0; i < SUITESIZE; ++i) {
-            if (div < suite[i]) {
-                div = suite[i] * decade;
-                break;
-            }
-        }
+    div = nearestAxisDivision(hi2r(MIN_PIX_PER_Y_DIV));
+    bool textOnRight = imageZero.x() < width() / 2.0;
 
-        // graduation Y avec la division
-        bool textOnRight = imageZero.x() < width() / 2.0;
+    const int64_t ymin = std::ceil(m_zoomMin.y() / div);
+    const int64_t ymax = std::ceil(m_zoomMax.y() / div);
+    for (int64_t y = ymin; y < ymax; ++y) {
+        qreal yreal = y * div;
+        qreal yimage = yr2i(yreal);
 
-        const int ymax = std::ceil(m_zoomMax.y() / div);
-        for (int y = std::ceil(m_zoomMin.y() / div); y < ymax; ++y) {
-            qreal yreal = y * div;
-            qreal yimage = yr2i(yreal);
+        if (qAbs(yimage - imageZero.y()) > 30.0) {
+            QString text = QString::number(yreal);
+            QPoint position(imageZero.x(), yimage + 0.4 * fm.ascent());
 
-            if (qAbs(yimage - imageZero.y()) > 30.0) {
-                QString text = QString::number(yreal);
-                QPoint position(imageZero.x(), yimage + 0.4 * fm.ascent());
+            if (textOnRight)
+                position.rx() += 10.0;
+            else
+                position.rx() -= fm.width(text) + 12.0;
 
-                if (textOnRight)
-                    position.rx() += 10.0;
-                else
-                    position.rx() -= fm.width(text) + 12.0;
-
-                painter.drawText(position, text);
-            }
+            painter.drawText(position, text);
         }
     }
 }
@@ -477,9 +429,9 @@ void Graph::mouseReleaseEvent(QMouseEvent *event)
     if (m_zoomRectOrigin.x() > 0 && m_zoomRectDest.x() > 0) {
         QPointF zMin = image2real(QPointF(qMin(m_zoomRectOrigin.x(), m_zoomRectDest.x()),
                                           qMax(m_zoomRectOrigin.y(), m_zoomRectDest.y())));
-        m_zoomMax = image2real(QPointF(qMax(m_zoomRectOrigin.x(), m_zoomRectDest.x()),
+        QPointF zMax = image2real(QPointF(qMax(m_zoomRectOrigin.x(), m_zoomRectDest.x()),
                                        qMin(m_zoomRectOrigin.y(), m_zoomRectDest.y())));
-        m_zoomMin = zMin;
+        setZoom(zMin.x(), zMax.x(), zMin.y(), zMax.y());
 
         update();
     }
@@ -503,8 +455,9 @@ void Graph::wheelEvent(QWheelEvent *event)
     const qreal zoom = std::pow(0.95, event->delta() / 120.0);
     QPointF mousePos = image2real(event->pos());
 
-    m_zoomMax = mousePos + zoom * (m_zoomMax - mousePos);
-    m_zoomMin= mousePos + zoom * (m_zoomMin - mousePos);
+    QPointF zMin = mousePos + zoom * (m_zoomMin - mousePos);
+    QPointF zMax = mousePos + zoom * (m_zoomMax - mousePos);
+    setZoom(zMin.x(), zMax.x(), zMin.y(), zMax.y());
 
     update();
 }

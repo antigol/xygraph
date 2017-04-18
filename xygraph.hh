@@ -54,8 +54,7 @@ public:
     inline void setxmax(qreal o) { m_zoomMax.rx() = o; }
     inline void setymin(qreal o) { m_zoomMin.ry() = o; }
     inline void setymax(qreal o) { m_zoomMax.ry() = o; }
-    inline void setZoom(qreal xmin, qreal xmax, qreal ymin, qreal ymax)
-    { m_zoomMin = QPointF(xmin, ymin); m_zoomMax = QPointF(xmax, ymax); }
+    void setZoom(qreal xmin, qreal xmax, qreal ymin, qreal ymax);
 
     void autoZoom();
     void relativeZoom(qreal factor);
@@ -81,6 +80,7 @@ public:
     QList<Function*> functions;
 
 private:
+    qreal nearestAxisDivision(qreal pixels);
     void paintAxes(QPainter& painter);
     void paintText(QPainter& painter);
     void paintPointLists(QPainter& painter);

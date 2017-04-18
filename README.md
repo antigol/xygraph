@@ -1,35 +1,42 @@
 # XYGraph
 
-## New version
+    class Sinusoidal : public XY::Function {
+    public :
+        qreal y(qreal x) override
+        {
+            return std::sin(x);
+        }
 
-    XY::Graph graph;
+    };
 
-    // add scatter points
-    QList<QPointF> points;
-    points << QPointF(0.0, 0.0) << QPointF(0.5, 1.0) << QPointF(1.0, 1.0) << QPointF(1.045, 1.05);
+    int main(int argc, char *argv[])
+    {
+        QApplication a(argc, argv);
 
-    XY::PointList my_scatterplot(points, QPen(), QBrush(), 5.0, QPen(Qt::red));
-    graph.addScatterplot(&my_scatterplot);
+        QList<QPointF> points;
+        for (int i = 0; i < 1000; ++i) {
+            points << QPointF(20.0 * i / 1000 - 10.0, 2.0 * qrand() / RAND_MAX - 1.0);
+        }
 
-    graph.autoZoom();
+        XY::Graph graph;
 
-    graph.setWindowTitle("Test 1");
-    graph.show();
+        XY::PointList pointlist(points);
+        pointlist.dotBrush = QBrush(Qt::NoBrush);
+        pointlist.dotPen = QPen(Qt::yellow, 2.0);
 
-## Old version
+        Sinusoidal sin;
+        sin.pen = QPen(Qt::red, 10.0, Qt::DotLine);
 
-    XYScene scene;
+        graph.pointLists << &pointlist;
+        graph.functions << &sin;
 
-    // add scatter points
-    QList<QPointF> points;
-    points << QPointF(0.0, 0.0) << QPointF(0.5, 1.0) << QPointF(1.0, 1.0) << QPointF(1.045, 1.05);
+        graph.autoZoom();
+        graph.relativeZoom(1.1);
 
-    XYScatterplot my_scatterplot(points, QPen(), QBrush(), 5.0, QPen(Qt::red));
-    scene.addScatterplot(&my_scatterplot);
+        graph.show();
 
-    scene.autoZoom();
+        return a.exec();
+    }
 
-    // create the view
-    XYGraph graph(&scene);
-    graph.setWindowTitle("Test 1");
-    graph.show();
+![screenshot from 2017-04-18 09-57-16](https://cloud.githubusercontent.com/assets/333780/25120264/a75a27a2-241d-11e7-849b-8c26ae5387e0.png)
+

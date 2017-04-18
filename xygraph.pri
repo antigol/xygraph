@@ -1,2 +1,2 @@
-SOURCES += xygraph.cc
-HEADERS += xygraph.hh
+SOURCES += $$PWD/xygraph.cc
+HEADERS += $$PWD/xygraph.hh
